@@ -8,15 +8,15 @@ import com.jeontongju.notification.feign.AuthenticationClientService;
 import com.jeontongju.notification.mapper.NotificationMapper;
 import com.jeontongju.notification.repository.EmitterRepository;
 import com.jeontongju.notification.repository.NotificationRepository;
+import com.jeontongju.notification.utils.CustomErrMessage;
 import io.github.bitbox.bitbox.enums.MemberRoleEnum;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.util.Map;
+import javax.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.io.IOException;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -92,29 +92,41 @@ public class NotificationService {
     return email + "_" + System.currentTimeMillis();
   }
 
+  @Transactional
   public void send(
       Long recipientId,
       RecipientTypeEnum recipientTypeEnum,
       NotificationTypeEnum notificationTypeEnum) {
 
+    // 해당 알림 저장
     Notification savedNotification =
         notificationRepository.save(
             notificationMapper.toEntity(recipientId, recipientTypeEnum, notificationTypeEnum));
 
+    // 이벤트 캐시를 위한 키 생성
     String recipientEmail =
         authenticationClientService.getMemberEmailForKey(recipientId).getEmail();
     String eventId = recipientEmail + "_" + System.currentTimeMillis();
+
     Map<String, SseEmitter> emitters =
         emitterRepository.findAllEmitterStartWithByEmail(recipientEmail);
 
     emitters.forEach(
         (key, emitter) -> {
+          // 이벤트 캐시에 저장
           emitterRepository.saveEventCache(key, savedNotification);
+          // 알림 전송
           sendNotification(
               emitter,
               eventId,
               key,
               notificationMapper.toEntity(recipientId, recipientTypeEnum, notificationTypeEnum));
         });
+  }
+
+  public Notification findByNotificationId(Long notificationId) {
+    return notificationRepository
+        .findByNotificationId(notificationId)
+        .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_NOTIFICATION));
   }
 }
