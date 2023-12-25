@@ -10,6 +10,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notification")
@@ -17,6 +21,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Getter
+@EntityListeners(AuditingEntityListener.class)
 public class Notification {
 
   @Id
@@ -38,4 +43,8 @@ public class Notification {
   @Column(name = "is_read", nullable = false)
   @Builder.Default
   private Boolean isRead = false;
+
+  @CreatedDate
+  @Column(name = "created_at", nullable = false)
+  private LocalDateTime createdAt;
 }

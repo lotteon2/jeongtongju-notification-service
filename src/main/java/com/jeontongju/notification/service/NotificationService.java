@@ -1,6 +1,8 @@
 package com.jeontongju.notification.service;
 
 import com.jeontongju.notification.domain.Notification;
+import com.jeontongju.notification.dto.response.NotificationInfoForInquiryResponseDto;
+import com.jeontongju.notification.dto.response.NotificationInfoForSingleInquiryDto;
 import com.jeontongju.notification.dto.temp.MemberEmailForKeyDto;
 import com.jeontongju.notification.feign.AuthenticationClientService;
 import com.jeontongju.notification.kafka.NotificationProducer;
@@ -12,6 +14,7 @@ import io.github.bitbox.bitbox.enums.MemberRoleEnum;
 import io.github.bitbox.bitbox.enums.NotificationTypeEnum;
 import io.github.bitbox.bitbox.enums.RecipientTypeEnum;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -178,5 +181,31 @@ public class NotificationService {
     return notificationRepository
         .findByNotificationId(notificationId)
         .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_NOTIFICATION));
+  }
+
+    public NotificationInfoForInquiryResponseDto getNotificationInfosForInquiry(Long memberId, MemberRoleEnum memberRole) {
+
+      List<Notification> foundNotifications = notificationRepository.findByRecipientId(memberId);
+      int notReadCounts = getUnreadCounts(foundNotifications);
+      List<NotificationInfoForSingleInquiryDto> notificationDtos = notificationMapper.toListLookupDto(foundNotifications);
+      return notificationMapper.toInquiryDto(notReadCounts, notificationDtos);
+    }
+
+  /**
+   * 안 읽은 알림 개수 세기
+   *
+   * @param notifications
+   * @return int
+   */
+  private int getUnreadCounts(List<Notification> notifications) {
+
+    int counts = 0;
+    for(Notification notification : notifications) {
+
+      if(!notification.getIsRead()) {
+        counts += 1;
+      }
+    }
+    return counts;
   }
 }
