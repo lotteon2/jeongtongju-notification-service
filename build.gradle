@@ -30,7 +30,8 @@ dependencies {
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-config'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.cloud:spring-cloud-starter-bus-kafka'
-	//implementation group: 'io.github.lotteon2', name: 'bitbox', version: '1.0.0'
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	implementation group: 'io.github.lotteon2', name: 'bitbox', version: '1.2.4'
 
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
