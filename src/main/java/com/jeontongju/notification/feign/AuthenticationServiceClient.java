@@ -5,7 +5,7 @@ import io.github.bitbox.bitbox.dto.FeignFormat;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 
-@FeignClient(name = "authentication-service", url = "${endpoint.authentication-service}")
+@FeignClient(name = "authentication-service")
 public interface AuthenticationServiceClient {
 
   @PostMapping("/members/email")

@@ -2,14 +2,15 @@ package com.jeontongju.notification.service;
 
 import com.jeontongju.notification.domain.Notification;
 import com.jeontongju.notification.dto.temp.MemberEmailForKeyDto;
-import com.jeontongju.notification.enums.NotificationTypeEnum;
-import com.jeontongju.notification.enums.RecipientTypeEnum;
 import com.jeontongju.notification.feign.AuthenticationClientService;
+import com.jeontongju.notification.kafka.NotificationProducer;
 import com.jeontongju.notification.mapper.NotificationMapper;
 import com.jeontongju.notification.repository.EmitterRepository;
 import com.jeontongju.notification.repository.NotificationRepository;
 import com.jeontongju.notification.utils.CustomErrMessage;
 import io.github.bitbox.bitbox.enums.MemberRoleEnum;
+import io.github.bitbox.bitbox.enums.NotificationTypeEnum;
+import io.github.bitbox.bitbox.enums.RecipientTypeEnum;
 import java.io.IOException;
 import java.util.Map;
 import javax.persistence.EntityNotFoundException;
@@ -28,6 +29,8 @@ public class NotificationService {
   private final NotificationMapper notificationMapper;
   private final AuthenticationClientService authenticationClientService;
 
+  private final NotificationProducer notificationProducer;
+
   // SSE 연결 지속시간 설정
   private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
 
@@ -35,19 +38,29 @@ public class NotificationService {
       EmitterRepository emitterRepository,
       NotificationRepository notificationRepository,
       NotificationMapper notificationMapper,
-      AuthenticationClientService authenticationClientService) {
+      AuthenticationClientService authenticationClientService,
+      NotificationProducer notificationProducer) {
+
     this.emitterRepository = emitterRepository;
     this.notificationRepository = notificationRepository;
     this.notificationMapper = notificationMapper;
     this.authenticationClientService = authenticationClientService;
+    this.notificationProducer = notificationProducer;
   }
 
+  /**
+   * SSE 연결 생성 및 유지
+   *
+   * @param memberId
+   * @param memberRole
+   * @param lastEventId
+   * @return SseEmitter
+   */
   public SseEmitter subscribe(Long memberId, MemberRoleEnum memberRole, String lastEventId) {
 
     MemberEmailForKeyDto memberEmailDto =
         authenticationClientService.getMemberEmailForKey(memberId);
     String username = memberEmailDto.getEmail();
-    log.info("username: " + username);
 
     // SseEmitter 객체 생성 및 저장
     String emitterId = makeTimeIncludedId(username);
@@ -56,7 +69,7 @@ public class NotificationService {
     emitter.onTimeout(() -> emitterRepository.deletedById(emitterId)); // SseEmitter 타임아웃
 
     String eventId = makeTimeIncludedId(username);
-    // 연결이 생성되었을 시, 더미 이벤트 전송
+    // 연결이 생성되었을 시, 확인용 더미 이벤트 전송
     sendNotification(emitter, eventId, emitterId, "EventStream Created. [email=" + username + "]");
 
     // 미수신 이벤트 전송
@@ -67,6 +80,24 @@ public class NotificationService {
     return emitter;
   }
 
+  /**
+   * 전송되지 못한 이벤트 확인
+   *
+   * @param lastEventId
+   * @return
+   */
+  private boolean hasLostData(String lastEventId) {
+    return !lastEventId.isEmpty();
+  }
+
+  /**
+   * 전송되지 못한 이벤트 재전송
+   *
+   * @param lastEventId
+   * @param username
+   * @param emitterId
+   * @param emitter
+   */
   private void sendLostData(
       String lastEventId, String username, String emitterId, SseEmitter emitter) {
 
@@ -76,10 +107,14 @@ public class NotificationService {
         .forEach(entry -> sendNotification(emitter, entry.getKey(), emitterId, entry.getValue()));
   }
 
-  private boolean hasLostData(String lastEventId) {
-    return !lastEventId.isEmpty();
-  }
-
+  /**
+   * 알림 전솓
+   *
+   * @param emitter
+   * @param eventId
+   * @param emitterId
+   * @param data
+   */
   private void sendNotification(SseEmitter emitter, String eventId, String emitterId, Object data) {
     try {
       emitter.send(SseEmitter.event().id(eventId).name("sse").data(data));
@@ -88,10 +123,23 @@ public class NotificationService {
     }
   }
 
+  /**
+   * 이메일과 시간정보가 포함된 id 생성
+   *
+   * @param email
+   * @return
+   */
   private String makeTimeIncludedId(String email) {
     return email + "_" + System.currentTimeMillis();
   }
 
+  /**
+   * 알림 저장 -> 이벤트 캐시에 저장 -> 알림 전송
+   *
+   * @param recipientId
+   * @param recipientTypeEnum
+   * @param notificationTypeEnum
+   */
   @Transactional
   public void send(
       Long recipientId,
@@ -116,14 +164,16 @@ public class NotificationService {
           // 이벤트 캐시에 저장
           emitterRepository.saveEventCache(key, savedNotification);
           // 알림 전송
-          sendNotification(
-              emitter,
-              eventId,
-              key,
-              notificationMapper.toEntity(recipientId, recipientTypeEnum, notificationTypeEnum));
+          sendNotification(emitter, eventId, key, savedNotification);
         });
   }
 
+  /**
+   * notificationId로 해당 알림 조히
+   *
+   * @param notificationId
+   * @return Notification
+   */
   public Notification findByNotificationId(Long notificationId) {
     return notificationRepository
         .findByNotificationId(notificationId)

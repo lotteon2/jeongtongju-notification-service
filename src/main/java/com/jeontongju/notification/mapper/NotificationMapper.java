@@ -1,8 +1,9 @@
 package com.jeontongju.notification.mapper;
 
 import com.jeontongju.notification.domain.Notification;
-import com.jeontongju.notification.enums.NotificationTypeEnum;
-import com.jeontongju.notification.enums.RecipientTypeEnum;
+
+import io.github.bitbox.bitbox.enums.NotificationTypeEnum;
+import io.github.bitbox.bitbox.enums.RecipientTypeEnum;
 import org.springframework.stereotype.Component;
 
 @Component

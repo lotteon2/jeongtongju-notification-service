@@ -2,9 +2,10 @@ package com.jeontongju.notification.domain;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
-import com.jeontongju.notification.enums.NotificationTypeEnum;
-import com.jeontongju.notification.enums.RecipientTypeEnum;
 import javax.persistence.*;
+
+import io.github.bitbox.bitbox.enums.NotificationTypeEnum;
+import io.github.bitbox.bitbox.enums.RecipientTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -3,11 +3,12 @@ package com.jeontongju.notification.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.jeontongju.notification.domain.Notification;
-import com.jeontongju.notification.enums.NotificationTypeEnum;
-import com.jeontongju.notification.enums.RecipientTypeEnum;
 import com.jeontongju.notification.repository.EmitterRepository;
 import io.github.bitbox.bitbox.enums.MemberRoleEnum;
 import java.util.Map;
+
+import io.github.bitbox.bitbox.enums.NotificationTypeEnum;
+import io.github.bitbox.bitbox.enums.RecipientTypeEnum;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +27,7 @@ public class NotificationServiceTests {
   void t1() {
 
     notificationService.subscribe(1L, MemberRoleEnum.ROLE_SELLER, "");
-    notificationService.send(
-        1L, RecipientTypeEnum.ROLE_SELLER, NotificationTypeEnum.OUT_OF_STOCK);
+    notificationService.send(1L, RecipientTypeEnum.ROLE_SELLER, NotificationTypeEnum.OUT_OF_STOCK);
 
     Map<String, Object> emitters =
         emitterRepository.findAllEventCacheStartWithByEmail("zjadlspun1114@naver.com");
