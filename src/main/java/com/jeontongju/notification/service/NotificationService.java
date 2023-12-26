@@ -6,11 +6,11 @@ import com.jeontongju.notification.dto.response.NotificationInfoForSingleInquiry
 import com.jeontongju.notification.dto.temp.MemberEmailForKeyDto;
 import com.jeontongju.notification.exception.NotificationNotFoundException;
 import com.jeontongju.notification.feign.AuthenticationClientService;
-import com.jeontongju.notification.kafka.NotificationProducer;
 import com.jeontongju.notification.mapper.NotificationMapper;
 import com.jeontongju.notification.repository.EmitterRepository;
 import com.jeontongju.notification.repository.NotificationRepository;
 import com.jeontongju.notification.utils.CustomErrMessage;
+import io.github.bitbox.bitbox.dto.ServerErrorForNotificationDto;
 import io.github.bitbox.bitbox.enums.MemberRoleEnum;
 import io.github.bitbox.bitbox.enums.NotificationTypeEnum;
 import io.github.bitbox.bitbox.enums.RecipientTypeEnum;
@@ -33,7 +33,6 @@ public class NotificationService {
   private final NotificationMapper notificationMapper;
   private final AuthenticationClientService authenticationClientService;
 
-  private final NotificationProducer notificationProducer;
 
   // SSE 연결 지속 시간 설정
   private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
@@ -42,14 +41,12 @@ public class NotificationService {
       EmitterRepository emitterRepository,
       NotificationRepository notificationRepository,
       NotificationMapper notificationMapper,
-      AuthenticationClientService authenticationClientService,
-      NotificationProducer notificationProducer) {
+      AuthenticationClientService authenticationClientService) {
 
     this.emitterRepository = emitterRepository;
     this.notificationRepository = notificationRepository;
     this.notificationMapper = notificationMapper;
     this.authenticationClientService = authenticationClientService;
-    this.notificationProducer = notificationProducer;
   }
 
   /**
@@ -170,6 +167,11 @@ public class NotificationService {
           // 알림 전송
           sendNotification(emitter, eventId, key, savedNotification);
         });
+  }
+
+  @Transactional
+  public void sendError(ServerErrorForNotificationDto serverErrorNotificationDto) {
+    // 서버 오류로 인한 주문 과정에서의 에러 발생 시, 주문 내역 저장 로직 작성
   }
 
   /**
