@@ -218,7 +218,7 @@ public class NotificationService {
    * @param notificationId
    */
   @Transactional
-  public void readProcessing(Long notificationId) {
+  public void readNotification(Long notificationId) {
 
     Notification foundNotification = getNotification(notificationId);
     foundNotification.assignIsRead(true);
@@ -236,5 +236,19 @@ public class NotificationService {
         .findById(notificationId)
         .orElseThrow(
             () -> new NotificationNotFoundException(CustomErrMessage.NOT_FOUND_NOTIFICATION));
+  }
+
+  /**
+   * 해당 회원 알림 전체 읽음 처리
+   *
+   * @param memberId
+   */
+  @Transactional
+  public void readAllNotification(Long memberId) {
+
+    List<Notification> foundNotifications = notificationRepository.findByRecipientId(memberId);
+    for (Notification notification : foundNotifications) {
+      notification.assignIsRead(true);
+    }
   }
 }
