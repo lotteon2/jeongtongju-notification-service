@@ -4,6 +4,7 @@ import com.jeontongju.notification.domain.Notification;
 import com.jeontongju.notification.dto.response.NotificationInfoForInquiryResponseDto;
 import com.jeontongju.notification.dto.response.NotificationInfoForSingleInquiryDto;
 import com.jeontongju.notification.dto.temp.MemberEmailForKeyDto;
+import com.jeontongju.notification.exception.NotificationNotFoundException;
 import com.jeontongju.notification.feign.AuthenticationClientService;
 import com.jeontongju.notification.kafka.NotificationProducer;
 import com.jeontongju.notification.mapper.NotificationMapper;
@@ -34,7 +35,7 @@ public class NotificationService {
 
   private final NotificationProducer notificationProducer;
 
-  // SSE 연결 지속시간 설정
+  // SSE 연결 지속 시간 설정
   private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
 
   public NotificationService(
@@ -111,7 +112,7 @@ public class NotificationService {
   }
 
   /**
-   * 알림 전솓
+   * 알림 전송
    *
    * @param emitter
    * @param eventId
@@ -172,7 +173,7 @@ public class NotificationService {
   }
 
   /**
-   * notificationId로 해당 알림 조히
+   * notificationId로 해당 알림 조회
    *
    * @param notificationId
    * @return Notification
@@ -183,13 +184,15 @@ public class NotificationService {
         .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_NOTIFICATION));
   }
 
-    public NotificationInfoForInquiryResponseDto getNotificationInfosForInquiry(Long memberId, MemberRoleEnum memberRole) {
+  public NotificationInfoForInquiryResponseDto getNotificationInfosForInquiry(
+      Long memberId, MemberRoleEnum memberRole) {
 
-      List<Notification> foundNotifications = notificationRepository.findByRecipientId(memberId);
-      int notReadCounts = getUnreadCounts(foundNotifications);
-      List<NotificationInfoForSingleInquiryDto> notificationDtos = notificationMapper.toListLookupDto(foundNotifications);
-      return notificationMapper.toInquiryDto(notReadCounts, notificationDtos);
-    }
+    List<Notification> foundNotifications = notificationRepository.findByRecipientId(memberId);
+    int notReadCounts = getUnreadCounts(foundNotifications);
+    List<NotificationInfoForSingleInquiryDto> notificationDtos =
+        notificationMapper.toListLookupDto(foundNotifications);
+    return notificationMapper.toInquiryDto(notReadCounts, notificationDtos);
+  }
 
   /**
    * 안 읽은 알림 개수 세기
@@ -200,12 +203,52 @@ public class NotificationService {
   private int getUnreadCounts(List<Notification> notifications) {
 
     int counts = 0;
-    for(Notification notification : notifications) {
+    for (Notification notification : notifications) {
 
-      if(!notification.getIsRead()) {
+      if (!notification.getIsRead()) {
         counts += 1;
       }
     }
     return counts;
+  }
+
+  /**
+   * 단일 알림 읽음 처리
+   *
+   * @param notificationId
+   */
+  @Transactional
+  public void readNotification(Long notificationId) {
+
+    Notification foundNotification = getNotification(notificationId);
+    foundNotification.assignIsRead(true);
+  }
+
+  /**
+   * notificationId로 Notification 객체 가져오기 (공통화)
+   *
+   * @param notificationId
+   * @return
+   */
+  public Notification getNotification(Long notificationId) {
+
+    return notificationRepository
+        .findById(notificationId)
+        .orElseThrow(
+            () -> new NotificationNotFoundException(CustomErrMessage.NOT_FOUND_NOTIFICATION));
+  }
+
+  /**
+   * 해당 회원 알림 전체 읽음 처리
+   *
+   * @param memberId
+   */
+  @Transactional
+  public void readAllNotification(Long memberId) {
+
+    List<Notification> foundNotifications = notificationRepository.findByRecipientId(memberId);
+    for (Notification notification : foundNotifications) {
+      notification.assignIsRead(true);
+    }
   }
 }

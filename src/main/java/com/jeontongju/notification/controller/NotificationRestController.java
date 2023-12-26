@@ -41,4 +41,31 @@ public class NotificationRestController {
                 .data(notificationService.getNotificationInfosForInquiry(memberId, memberRole))
                 .build());
   }
+
+  @PatchMapping("/notifications/{notificationId}")
+  public ResponseEntity<ResponseFormat<Void>> readNotification(
+      @PathVariable("notificationId") Long notificationId) {
+
+    notificationService.readNotification(notificationId);
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("해당 알림 읽음 처리 성공")
+                .build());
+  }
+
+  @PatchMapping("/notifications")
+  public ResponseEntity<ResponseFormat<Void>> readAllNotification(@RequestHeader Long memberId) {
+
+    notificationService.readAllNotification(memberId);
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("전체 읽음 처리 성공")
+                .build());
+  }
 }
