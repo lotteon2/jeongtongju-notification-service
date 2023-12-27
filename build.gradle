@@ -31,6 +31,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.cloud:spring-cloud-starter-bus-kafka'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation group: 'io.github.lotteon2', name: 'bitbox', version: '1.2.6'
 
 	compileOnly 'org.projectlombok:lombok'
