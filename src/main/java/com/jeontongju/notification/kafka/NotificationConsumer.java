@@ -6,7 +6,6 @@ import io.github.bitbox.bitbox.dto.ServerErrorForNotificationDto;
 import io.github.bitbox.bitbox.util.KafkaTopicNameInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -32,12 +31,11 @@ public class NotificationConsumer {
   }
 
   @KafkaListener(topics = KafkaTopicNameInfo.SEND_ERROR_NOTIFICATION)
-  public void sendServerErrorNotification(
-      ServerErrorForNotificationDto serverErrorNotificationDto) {
+  public void sendServerErrorNotification(ServerErrorForNotificationDto serverErrorDto) {
 
     log.info("NotificationConsumer's sendServerErrorNotification executes..");
     try {
-      notificationService.sendError(serverErrorNotificationDto);
+      notificationService.sendError(serverErrorDto);
     } catch (Exception e) {
       log.error("During Send Event: Error while do server-error-notification={}", e.getMessage());
     }

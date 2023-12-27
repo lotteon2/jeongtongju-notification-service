@@ -4,6 +4,8 @@ import com.jeontongju.notification.dto.response.NotificationInfoForInquiryRespon
 import com.jeontongju.notification.service.NotificationService;
 import io.github.bitbox.bitbox.dto.ResponseFormat;
 import io.github.bitbox.bitbox.enums.MemberRoleEnum;
+import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,5 +68,16 @@ public class NotificationRestController {
                 .message(HttpStatus.OK.name())
                 .detail("전체 읽음 처리 성공")
                 .build());
+  }
+
+  @GetMapping("/notifications/{notificationId}/to")
+  public void redirectByNotificationLink(
+      @RequestHeader Long memberId, @PathVariable Long notificationId, HttpServletResponse response)
+      throws IOException {
+
+    String foundRedirectLink = notificationService.getRedirectLink(memberId, notificationId);
+    if (foundRedirectLink != null) {
+      response.sendRedirect(foundRedirectLink);
+    }
   }
 }

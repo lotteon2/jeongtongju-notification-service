@@ -26,6 +26,20 @@ public class NotificationMapper {
         .build();
   }
 
+  public Notification toIncludedRedirectLinkEntity(
+      Long recipientId,
+      RecipientTypeEnum recipientTypeEnum,
+      NotificationTypeEnum notificationType,
+      String redirectLink) {
+
+    return Notification.builder()
+        .recipientId(recipientId)
+        .recipientTypeEnum(recipientTypeEnum)
+        .notificationTypeEnum(notificationType)
+        .redirectLink(redirectLink)
+        .build();
+  }
+
   public List<NotificationInfoForSingleInquiryDto> toListLookupDto(
       List<Notification> notifications) {
 
