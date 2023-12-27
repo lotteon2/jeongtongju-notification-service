@@ -17,7 +17,6 @@ import io.github.bitbox.bitbox.enums.RecipientTypeEnum;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import javax.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +31,6 @@ public class NotificationService {
   private final NotificationRepository notificationRepository;
   private final NotificationMapper notificationMapper;
   private final AuthenticationClientService authenticationClientService;
-
 
   // SSE 연결 지속 시간 설정
   private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
@@ -52,10 +50,10 @@ public class NotificationService {
   /**
    * SSE 연결 생성 및 유지
    *
-   * @param memberId
-   * @param memberRole
-   * @param lastEventId
-   * @return SseEmitter
+   * @param memberId 로그인 한 회원의 식별자
+   * @param memberRole 로그인 한 회원의 역할
+   * @param lastEventId 마지막으로 받은 이벤트 식별자
+   * @return {SseEmitter} SSE 연결 객체
    */
   public SseEmitter subscribe(Long memberId, MemberRoleEnum memberRole, String lastEventId) {
 
@@ -82,22 +80,22 @@ public class NotificationService {
   }
 
   /**
-   * 전송되지 못한 이벤트 확인
+   * 전송 못한 이벤트 확인
    *
-   * @param lastEventId
-   * @return
+   * @param lastEventId 마지막으로 받은 이벤트 식별자
+   * @return {boolean} 전송 못한 이벤트 유무
    */
   private boolean hasLostData(String lastEventId) {
     return !lastEventId.isEmpty();
   }
 
   /**
-   * 전송되지 못한 이벤트 재전송
+   * 전송 못한 이벤트 재전송
    *
-   * @param lastEventId
-   * @param username
-   * @param emitterId
-   * @param emitter
+   * @param lastEventId 마지막으로 받은 이벤트 식별자
+   * @param username 로그인 한 회원의 아이디(이메일)
+   * @param emitterId SseEmitter를 식별자(이메일_시각)
+   * @param emitter 연결된 SseEmitter 객체
    */
   private void sendLostData(
       String lastEventId, String username, String emitterId, SseEmitter emitter) {
@@ -109,37 +107,11 @@ public class NotificationService {
   }
 
   /**
-   * 알림 전송
-   *
-   * @param emitter
-   * @param eventId
-   * @param emitterId
-   * @param data
-   */
-  private void sendNotification(SseEmitter emitter, String eventId, String emitterId, Object data) {
-    try {
-      emitter.send(SseEmitter.event().id(eventId).name("sse").data(data));
-    } catch (IOException e) {
-      emitterRepository.deletedById(emitterId);
-    }
-  }
-
-  /**
-   * 이메일과 시간정보가 포함된 id 생성
-   *
-   * @param email
-   * @return
-   */
-  private String makeTimeIncludedId(String email) {
-    return email + "_" + System.currentTimeMillis();
-  }
-
-  /**
    * 알림 저장 -> 이벤트 캐시에 저장 -> 알림 전송
    *
-   * @param recipientId
-   * @param recipientTypeEnum
-   * @param notificationTypeEnum
+   * @param recipientId 수신 회원 식별자
+   * @param recipientTypeEnum 수신 회원 역할
+   * @param notificationTypeEnum 알림 유형
    */
   @Transactional
   public void send(
@@ -152,11 +124,12 @@ public class NotificationService {
         notificationRepository.save(
             notificationMapper.toEntity(recipientId, recipientTypeEnum, notificationTypeEnum));
 
-    // 이벤트 캐시를 위한 키 생성
     String recipientEmail =
         authenticationClientService.getMemberEmailForKey(recipientId).getEmail();
-    String eventId = recipientEmail + "_" + System.currentTimeMillis();
+    // 이벤트 캐시를 위한 키 생성
+    String eventId = makeTimeIncludedId(recipientEmail);
 
+    // 연결된 SseEmitter 가져오기
     Map<String, SseEmitter> emitters =
         emitterRepository.findAllEmitterStartWithByEmail(recipientEmail);
 
@@ -169,23 +142,44 @@ public class NotificationService {
         });
   }
 
+  /**
+   * 이메일과 시간 정보가 포함된 id 생성 (이벤트 및 SseEmitter 식별자)
+   *
+   * @param email prefix로 사용될 이메일
+   * @return {String} 생성된 식별자(이메일_시각)
+   */
+  private String makeTimeIncludedId(String email) {
+    return email + "_" + System.currentTimeMillis();
+  }
+
+  /**
+   * 실제 알림 전송
+   *
+   * @param emitter 연결된 SseEmitter 객체
+   * @param eventId 이벤트 식별자 (이메일_시각)
+   * @param emitterId SseEmitter 객체 식별자 (이메일_시각)
+   * @param data 전송 내용
+   */
+  private void sendNotification(SseEmitter emitter, String eventId, String emitterId, Object data) {
+    try {
+      emitter.send(SseEmitter.event().id(eventId).name("sse").data(data));
+    } catch (IOException e) {
+      emitterRepository.deletedById(emitterId);
+    }
+  }
+
   @Transactional
   public void sendError(ServerErrorForNotificationDto serverErrorNotificationDto) {
     // 서버 오류로 인한 주문 과정에서의 에러 발생 시, 주문 내역 저장 로직 작성
   }
 
   /**
-   * notificationId로 해당 알림 조회
+   * 알림 조회 + 안읽은 알림 개수
    *
-   * @param notificationId
-   * @return Notification
+   * @param memberId 로그인 한 회원의 식별자
+   * @param memberRole 로그인 한 회원의 역할
+   * @return {NotificationInfoForInquiryResponseDto} 조회할 알림 정보
    */
-  public Notification findByNotificationId(Long notificationId) {
-    return notificationRepository
-        .findByNotificationId(notificationId)
-        .orElseThrow(() -> new EntityNotFoundException(CustomErrMessage.NOT_FOUND_NOTIFICATION));
-  }
-
   public NotificationInfoForInquiryResponseDto getNotificationInfosForInquiry(
       Long memberId, MemberRoleEnum memberRole) {
 
@@ -199,8 +193,8 @@ public class NotificationService {
   /**
    * 안 읽은 알림 개수 세기
    *
-   * @param notifications
-   * @return int
+   * @param notifications 로그인 한 회원의 모든 알림
+   * @return {int} 안 읽은 알림 개수
    */
   private int getUnreadCounts(List<Notification> notifications) {
 
@@ -217,7 +211,7 @@ public class NotificationService {
   /**
    * 단일 알림 읽음 처리
    *
-   * @param notificationId
+   * @param notificationId 읽음 처리할 Notification 객체 식별자
    */
   @Transactional
   public void readNotification(Long notificationId) {
@@ -227,23 +221,9 @@ public class NotificationService {
   }
 
   /**
-   * notificationId로 Notification 객체 가져오기 (공통화)
-   *
-   * @param notificationId
-   * @return
-   */
-  public Notification getNotification(Long notificationId) {
-
-    return notificationRepository
-        .findById(notificationId)
-        .orElseThrow(
-            () -> new NotificationNotFoundException(CustomErrMessage.NOT_FOUND_NOTIFICATION));
-  }
-
-  /**
    * 해당 회원 알림 전체 읽음 처리
    *
-   * @param memberId
+   * @param memberId 로그인 한 회원의 식별자
    */
   @Transactional
   public void readAllNotification(Long memberId) {
@@ -252,5 +232,19 @@ public class NotificationService {
     for (Notification notification : foundNotifications) {
       notification.assignIsRead(true);
     }
+  }
+
+  /**
+   * notificationId로 해당 알림 조회 (공통화)
+   *
+   * @param notificationId 읽음 처리할 Notification 객체 식별자
+   * @return {Notification} Notification 객체
+   */
+  public Notification getNotification(Long notificationId) {
+
+    return notificationRepository
+        .findById(notificationId)
+        .orElseThrow(
+            () -> new NotificationNotFoundException(CustomErrMessage.NOT_FOUND_NOTIFICATION));
   }
 }

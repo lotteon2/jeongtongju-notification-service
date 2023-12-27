@@ -41,7 +41,7 @@ public class NotificationServiceTests {
               .isEqualTo(NotificationTypeEnum.OUT_OF_STOCK);
         });
 
-    Notification foundNotification = notificationService.findByNotificationId(1L);
+    Notification foundNotification = notificationService.getNotification(1L);
     // DB에 저장된 정보 확인
     assertThat(foundNotification.getRecipientId()).isEqualTo(1L);
     assertThat(foundNotification.getNotificationTypeEnum())
