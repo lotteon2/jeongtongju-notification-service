@@ -20,11 +20,10 @@ public class NotificationRestController {
   @GetMapping("/notifications/connect")
   public SseEmitter connect(
       @RequestHeader Long memberId,
-      @RequestHeader MemberRoleEnum memberRole,
       @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "")
           String lastEventId) {
 
-    return notificationService.subscribe(memberId, memberRole, lastEventId);
+    return notificationService.subscribe(memberId, lastEventId);
   }
 
   @GetMapping("/notifications")

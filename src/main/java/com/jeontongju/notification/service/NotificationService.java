@@ -33,7 +33,7 @@ public class NotificationService {
   private final AuthenticationClientService authenticationClientService;
 
   // SSE 연결 지속 시간 설정
-  private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
+  private static final Long DEFAULT_TIMEOUT = 60L * 60 * 5 * 1000;
 
   public NotificationService(
       EmitterRepository emitterRepository,
@@ -51,23 +51,26 @@ public class NotificationService {
    * SSE 연결 생성 및 유지
    *
    * @param memberId 로그인 한 회원의 식별자
-   * @param memberRole 로그인 한 회원의 역할
    * @param lastEventId 마지막으로 받은 이벤트 식별자
    * @return {SseEmitter} SSE 연결 객체
    */
-  public SseEmitter subscribe(Long memberId, MemberRoleEnum memberRole, String lastEventId) {
+  @Transactional
+  public SseEmitter subscribe(Long memberId, String lastEventId) {
 
     MemberEmailForKeyDto memberEmailDto =
         authenticationClientService.getMemberEmailForKey(memberId);
     String username = memberEmailDto.getEmail();
 
     // SseEmitter 객체 생성 및 저장
-    String emitterId = makeTimeIncludedId(username);
+    String emitterId = makeTimeIncludedId(username, memberId);
     SseEmitter emitter = emitterRepository.save(emitterId, new SseEmitter(DEFAULT_TIMEOUT));
     emitter.onCompletion(() -> emitterRepository.deletedById(emitterId)); // SseEmitter 완료
-    emitter.onTimeout(() -> emitterRepository.deletedById(emitterId)); // SseEmitter 타임아웃
+    emitter.onTimeout(() -> {
+      System.out.println("타임아웃되었습니다.");
+      emitterRepository.deletedById(emitterId);
+    }); // SseEmitter 타임 아웃
 
-    String eventId = makeTimeIncludedId(username);
+    String eventId = makeTimeIncludedId(username, memberId);
     // 연결이 생성되었을 시, 확인용 더미 이벤트 전송
     sendNotification(emitter, eventId, emitterId, "EventStream Created. [email=" + username + "]");
 
@@ -127,11 +130,11 @@ public class NotificationService {
     String recipientEmail =
         authenticationClientService.getMemberEmailForKey(recipientId).getEmail();
     // 이벤트 캐시를 위한 키 생성
-    String eventId = makeTimeIncludedId(recipientEmail);
+    String eventId = makeTimeIncludedId(recipientEmail, recipientId);
 
     // 연결된 SseEmitter 가져오기
     Map<String, SseEmitter> emitters =
-        emitterRepository.findAllEmitterStartWithByEmail(recipientEmail);
+        emitterRepository.findAllEmitterStartWithByEmail(recipientEmail + "_" + recipientId);
 
     emitters.forEach(
         (key, emitter) -> {
@@ -146,18 +149,19 @@ public class NotificationService {
    * 이메일과 시간 정보가 포함된 id 생성 (이벤트 및 SseEmitter 식별자)
    *
    * @param email prefix로 사용될 이메일
-   * @return {String} 생성된 식별자(이메일_시각)
+   * @param memberId prefix로 사용될 회원 식별자
+   * @return {String} 생성된 식별자(이메일_식별자_시각)
    */
-  private String makeTimeIncludedId(String email) {
-    return email + "_" + System.currentTimeMillis();
+  public String makeTimeIncludedId(String email, Long memberId) {
+    return email + "_" + memberId + "_" + System.currentTimeMillis();
   }
 
   /**
    * 실제 알림 전송
    *
    * @param emitter 연결된 SseEmitter 객체
-   * @param eventId 이벤트 식별자 (이메일_시각)
-   * @param emitterId SseEmitter 객체 식별자 (이메일_시각)
+   * @param eventId 이벤트 식별자 (이메일_식별자_시각)
+   * @param emitterId SseEmitter 객체 식별자 (이메일_식별자_시각)
    * @param data 전송 내용
    */
   private void sendNotification(SseEmitter emitter, String eventId, String emitterId, Object data) {
