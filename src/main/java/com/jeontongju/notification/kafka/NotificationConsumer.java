@@ -17,8 +17,10 @@ public class NotificationConsumer {
   private final NotificationService notificationService;
 
   @KafkaListener(topics = KafkaTopicNameInfo.SEND_NOTIFICATION)
-  public void sendNotification(MemberInfoForNotificationDto notificationDto) {
+  public void sendNotification(MemberInfoForNotificationDto notificationDto)
+      throws InterruptedException {
 
+    Thread.sleep(10000);
     log.info("NotificationConsumer's sendNotification executes..");
     try {
       notificationService.send(
@@ -31,8 +33,10 @@ public class NotificationConsumer {
   }
 
   @KafkaListener(topics = KafkaTopicNameInfo.SEND_ERROR_NOTIFICATION)
-  public void sendServerErrorNotification(ServerErrorForNotificationDto serverErrorDto) {
+  public void sendServerErrorNotification(ServerErrorForNotificationDto serverErrorDto)
+      throws InterruptedException {
 
+    Thread.sleep(10000);
     log.info("NotificationConsumer's sendServerErrorNotification executes..");
     try {
       notificationService.sendError(serverErrorDto);
