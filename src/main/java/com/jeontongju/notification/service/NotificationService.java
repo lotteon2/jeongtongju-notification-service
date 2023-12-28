@@ -156,6 +156,7 @@ public class NotificationService {
           // 이벤트 캐시에 저장
           emitterRepository.saveEventCache(key, savedNotification);
           // 알림 전송
+          log.info("이벤트 알림 전송");
           sendNotification(
               emitter, eventId, key, savedNotification.getNotificationTypeEnum().name());
         });
