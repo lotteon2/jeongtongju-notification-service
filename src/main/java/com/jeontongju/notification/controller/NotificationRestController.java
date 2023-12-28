@@ -1,10 +1,12 @@
 package com.jeontongju.notification.controller;
 
+import com.jeontongju.notification.dto.response.EmitterInfoForSingleInquiryDto;
 import com.jeontongju.notification.dto.response.NotificationInfoForInquiryResponseDto;
 import com.jeontongju.notification.service.NotificationService;
 import io.github.bitbox.bitbox.dto.ResponseFormat;
 import io.github.bitbox.bitbox.enums.MemberRoleEnum;
 import java.io.IOException;
+import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -89,5 +91,19 @@ public class NotificationRestController {
   @PostMapping("/notifications/test")
   public void test(@RequestHeader Long memberId, @RequestHeader MemberRoleEnum memberRole) {
     notificationService.testNotificationProduce(memberId, memberRole);
+  }
+
+  @GetMapping("/notifications/test")
+  public ResponseEntity<ResponseFormat<List<EmitterInfoForSingleInquiryDto>>> test2(
+      @RequestHeader Long memberId, @RequestHeader MemberRoleEnum memberRole) {
+
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<List<EmitterInfoForSingleInquiryDto>>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("emitters 목록 조회 성공")
+                .data(notificationService.getEmitters(memberId, memberRole))
+                .build());
   }
 }

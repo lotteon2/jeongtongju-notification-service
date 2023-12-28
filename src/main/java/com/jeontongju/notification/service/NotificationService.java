@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jeontongju.notification.domain.Notification;
+import com.jeontongju.notification.dto.response.EmitterInfoForSingleInquiryDto;
 import com.jeontongju.notification.dto.response.NotificationInfoForInquiryResponseDto;
 import com.jeontongju.notification.dto.response.NotificationInfoForSingleInquiryDto;
 import com.jeontongju.notification.dto.temp.MemberEmailForKeyDto;
@@ -22,6 +23,7 @@ import io.github.bitbox.bitbox.enums.NotificationTypeEnum;
 import io.github.bitbox.bitbox.enums.RecipientTypeEnum;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,6 +86,7 @@ public class NotificationService {
 
     SseEmitter emitter = emitterRepository.save(emitterId, new SseEmitter(DEFAULT_TIMEOUT));
     emitter.onCompletion(() -> emitterRepository.deletedById(emitterId)); // SseEmitter 완료
+    emitter.onError((e) -> emitterRepository.deletedById(emitterId));
     emitter.onTimeout(() -> emitterRepository.deletedById(emitterId)); // SseEmitter 타임 아웃
 
     String eventId = makeTimeIncludedId(username, memberId);
@@ -191,7 +194,7 @@ public class NotificationService {
       SseEmitter emitter, String eventId, String emitterId, String eventName, Object data) {
     try {
       emitter.send(SseEmitter.event().id(eventId).name(eventName).data(data));
-      log.info("[NotificationService's sendNotification executes]: 알림 전송 완료");
+      log.info("[NotificationService's sendNotification executes]: 알림 전송 완료: " + eventName);
     } catch (IOException e) {
       emitterRepository.deletedById(emitterId);
     }
@@ -346,5 +349,26 @@ public class NotificationService {
             .recipientType(recipientType)
             .notificationType(NotificationTypeEnum.OUT_OF_STOCK)
             .build());
+  }
+
+  public List<EmitterInfoForSingleInquiryDto> getEmitters(Long memberId, MemberRoleEnum memberRole) {
+
+    String email =
+            authenticationClientService.getMemberEmailForKey(memberId).getEmail();
+    String gerneratedId = makeTimeIncludedId(email, memberId);
+    Map<String, SseEmitter> allEmitterStartWithByEmail = emitterRepository.findAllEmitterStartWithByEmail(email);
+
+    List<EmitterInfoForSingleInquiryDto> emitters = new ArrayList<>();
+    for(String key : allEmitterStartWithByEmail.keySet()) {
+      if(key.startsWith(email + "_" + memberId)) {
+        SseEmitter sseEmitter = allEmitterStartWithByEmail.get(key);
+        EmitterInfoForSingleInquiryDto build = EmitterInfoForSingleInquiryDto.builder()
+                .emitterId(key)
+                .sseEmitter(sseEmitter)
+                .build();
+        emitters.add(build);
+      }
+    }
+    return emitters;
   }
 }
