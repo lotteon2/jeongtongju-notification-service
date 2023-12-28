@@ -1,7 +1,7 @@
 package com.jeontongju.notification.kafka;
 
-import com.jeontongju.notification.dto.temp.MemberInfoForNotificationDto;
 import com.jeontongju.notification.service.NotificationService;
+import io.github.bitbox.bitbox.dto.MemberInfoForNotificationDto;
 import io.github.bitbox.bitbox.dto.ServerErrorForNotificationDto;
 import io.github.bitbox.bitbox.util.KafkaTopicNameInfo;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class NotificationConsumer {
     log.info("NotificationConsumer's sendNotification executes..");
     try {
       notificationService.send(
-          notificationDto.getRecipient_id(),
+          notificationDto.getRecipientId(),
           notificationDto.getRecipientType(),
           notificationDto.getNotificationType());
     } catch (Exception e) {
