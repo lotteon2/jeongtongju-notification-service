@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.github.bitbox.bitbox.util.KafkaTopicNameInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -80,14 +81,27 @@ public class NotificationService {
 
     // SseEmitter 객체 생성 및 저장
     String emitterId = makeTimeIncludedId(username, memberId);
-    SseEmitter emitter = emitterRepository.save(emitterId, new SseEmitter(DEFAULT_TIMEOUT));
+
+    SseEmitter sseEmitter = new SseEmitter();
+    Map<String, SseEmitter> allEmitterStartWithByEmail =
+        emitterRepository.findAllEmitterStartWithByEmail(username + "_" + memberId);
+    Set<String> keys = allEmitterStartWithByEmail.keySet();
+    for (String key : keys) {
+      if (key.startsWith(username + "_" + memberId)) {
+        sseEmitter = allEmitterStartWithByEmail.get(key);
+        break;
+      }
+    }
+
+    SseEmitter emitter = emitterRepository.save(emitterId, sseEmitter);
     emitter.onCompletion(() -> emitterRepository.deletedById(emitterId)); // SseEmitter 완료
     emitter.onTimeout(() -> emitterRepository.deletedById(emitterId)); // SseEmitter 타임 아웃
 
     String eventId = makeTimeIncludedId(username, memberId);
     // 연결이 생성되었을 시, 확인용 더미 이벤트 전송
     log.info("[NotificationService's subscribe's executes]: 연결 생성");
-    sendNotification(emitter, eventId, emitterId, "connect","EventStream Created. [email=" + username + "]");
+    sendNotification(
+        emitter, eventId, emitterId, "connect", "EventStream Created. [email=" + username + "]");
 
     // 미수신 이벤트 전송
     if (hasLostData(lastEventId)) {
@@ -104,6 +118,7 @@ public class NotificationService {
    * @return {boolean} 전송 못한 이벤트 유무
    */
   private boolean hasLostData(String lastEventId) {
+
     return !lastEventId.isEmpty();
   }
 
@@ -121,7 +136,9 @@ public class NotificationService {
     Map<String, Object> eventCaches = emitterRepository.findAllEventCacheStartWithByEmail(username);
     eventCaches.entrySet().stream()
         .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
-        .forEach(entry -> sendNotification(emitter, entry.getKey(), emitterId, "happy", entry.getValue()));
+        .forEach(
+            entry ->
+                sendNotification(emitter, entry.getKey(), emitterId, "happy", entry.getValue()));
   }
 
   /**
@@ -181,7 +198,8 @@ public class NotificationService {
    * @param emitterId SseEmitter 객체 식별자 (이메일_식별자_시각)
    * @param data 전송 내용
    */
-  private void sendNotification(SseEmitter emitter, String eventId, String emitterId, String eventName, Object data) {
+  private void sendNotification(
+      SseEmitter emitter, String eventId, String emitterId, String eventName, Object data) {
     try {
       emitter.send(SseEmitter.event().id(eventId).name(eventName).data(data));
       log.info("[NotificationService's sendNotification executes]: 알림 전송 완료");
