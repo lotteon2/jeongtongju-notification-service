@@ -86,6 +86,7 @@ public class NotificationService {
 
     String eventId = makeTimeIncludedId(username, memberId);
     // 연결이 생성되었을 시, 확인용 더미 이벤트 전송
+    log.info("[NotificationService's subscribe's executes]: 연결 생성");
     sendNotification(emitter, eventId, emitterId, "EventStream Created. [email=" + username + "]");
 
     // 미수신 이벤트 전송
@@ -181,6 +182,7 @@ public class NotificationService {
   private void sendNotification(SseEmitter emitter, String eventId, String emitterId, Object data) {
     try {
       emitter.send(SseEmitter.event().id(eventId).name("sse").data(data));
+      log.info("[NotificationService's sendNotification executes]: 알림 전송 완료");
     } catch (IOException e) {
       emitterRepository.deletedById(emitterId);
     }
