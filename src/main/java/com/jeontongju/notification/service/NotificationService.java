@@ -71,7 +71,7 @@ public class NotificationService {
    * @param lastEventId 마지막으로 받은 이벤트 식별자
    * @return {SseEmitter} SSE 연결 객체
    */
-//  @Transactional
+  //  @Transactional
   public SseEmitter subscribe(Long memberId, String lastEventId) {
 
     MemberEmailForKeyDto memberEmailDto =
@@ -156,7 +156,8 @@ public class NotificationService {
           // 이벤트 캐시에 저장
           emitterRepository.saveEventCache(key, savedNotification);
           // 알림 전송
-          sendNotification(emitter, eventId, key, savedNotification);
+          sendNotification(
+              emitter, eventId, key, savedNotification.getNotificationTypeEnum().name());
         });
   }
 
@@ -326,16 +327,16 @@ public class NotificationService {
   public void testNotificationProduce(Long memberId, MemberRoleEnum memberRole) {
 
     RecipientTypeEnum recipientType =
-            memberRole.equals(MemberRoleEnum.ROLE_CONSUMER)
-                    ? RecipientTypeEnum.ROLE_CONSUMER
-                    : RecipientTypeEnum.ROLE_SELLER;
+        memberRole.equals(MemberRoleEnum.ROLE_CONSUMER)
+            ? RecipientTypeEnum.ROLE_CONSUMER
+            : RecipientTypeEnum.ROLE_SELLER;
 
     notificationProducer.send(
-            KafkaTopicNameInfo.SEND_NOTIFICATION,
-            MemberInfoForNotificationDto.builder()
-                    .recipientId(memberId)
-                    .recipientType(recipientType)
-                    .notificationType(NotificationTypeEnum.OUT_OF_STOCK)
-                    .build());
+        KafkaTopicNameInfo.SEND_NOTIFICATION,
+        MemberInfoForNotificationDto.builder()
+            .recipientId(memberId)
+            .recipientType(recipientType)
+            .notificationType(NotificationTypeEnum.OUT_OF_STOCK)
+            .build());
   }
 }
