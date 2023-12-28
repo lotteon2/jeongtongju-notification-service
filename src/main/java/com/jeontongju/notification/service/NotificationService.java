@@ -82,18 +82,7 @@ public class NotificationService {
     // SseEmitter 객체 생성 및 저장
     String emitterId = makeTimeIncludedId(username, memberId);
 
-    SseEmitter sseEmitter = new SseEmitter();
-    Map<String, SseEmitter> allEmitterStartWithByEmail =
-        emitterRepository.findAllEmitterStartWithByEmail(username + "_" + memberId);
-    Set<String> keys = allEmitterStartWithByEmail.keySet();
-    for (String key : keys) {
-      if (key.startsWith(username + "_" + memberId)) {
-        sseEmitter = allEmitterStartWithByEmail.get(key);
-        break;
-      }
-    }
-
-    SseEmitter emitter = emitterRepository.save(emitterId, sseEmitter);
+    SseEmitter emitter = emitterRepository.save(emitterId, new SseEmitter(DEFAULT_TIMEOUT));
     emitter.onCompletion(() -> emitterRepository.deletedById(emitterId)); // SseEmitter 완료
     emitter.onTimeout(() -> emitterRepository.deletedById(emitterId)); // SseEmitter 타임 아웃
 
