@@ -97,7 +97,7 @@ public class NotificationService {
 
     // 미수신 이벤트 전송
     if (hasLostData(lastEventId)) {
-      sendLostData(lastEventId, username, emitterId, emitter);
+      sendLostData(lastEventId, username, memberId, emitterId, emitter);
     }
 
     return emitter;
@@ -111,6 +111,7 @@ public class NotificationService {
    */
   private boolean hasLostData(String lastEventId) {
 
+    log.info("[lastEventId remains]: " + lastEventId);
     return !lastEventId.isEmpty();
   }
 
@@ -123,14 +124,17 @@ public class NotificationService {
    * @param emitter 연결된 SseEmitter 객체
    */
   private void sendLostData(
-      String lastEventId, String username, String emitterId, SseEmitter emitter) {
+      String lastEventId, String username, Long memberId, String emitterId, SseEmitter emitter) {
 
-    Map<String, Object> eventCaches = emitterRepository.findAllEventCacheStartWithByEmail(username);
+    log.info("[NotificationService's sendLostData executes]: " + username + " " + memberId + " " + lastEventId);
+    Map<String, Object> eventCaches = emitterRepository.findAllEventCacheStartWithByEmail(username + "_" + memberId);
     eventCaches.entrySet().stream()
         .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
         .forEach(
-            entry ->
-                sendNotification(emitter, entry.getKey(), emitterId, "happy", entry.getValue()));
+            entry -> {
+                sendNotification(emitter, entry.getKey(), emitterId, "happy", entry.getValue());
+                log.info("[In eventCaches]: " + emitterId + " " + "send");
+            });
   }
 
   /**
