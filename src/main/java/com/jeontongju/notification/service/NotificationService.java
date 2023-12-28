@@ -87,7 +87,7 @@ public class NotificationService {
     String eventId = makeTimeIncludedId(username, memberId);
     // 연결이 생성되었을 시, 확인용 더미 이벤트 전송
     log.info("[NotificationService's subscribe's executes]: 연결 생성");
-    sendNotification(emitter, eventId, emitterId, "EventStream Created. [email=" + username + "]");
+    sendNotification(emitter, eventId, emitterId, "connect","EventStream Created. [email=" + username + "]");
 
     // 미수신 이벤트 전송
     if (hasLostData(lastEventId)) {
@@ -121,7 +121,7 @@ public class NotificationService {
     Map<String, Object> eventCaches = emitterRepository.findAllEventCacheStartWithByEmail(username);
     eventCaches.entrySet().stream()
         .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
-        .forEach(entry -> sendNotification(emitter, entry.getKey(), emitterId, entry.getValue()));
+        .forEach(entry -> sendNotification(emitter, entry.getKey(), emitterId, "happy", entry.getValue()));
   }
 
   /**
@@ -158,7 +158,7 @@ public class NotificationService {
           // 알림 전송
           log.info("이벤트 알림 전송");
           sendNotification(
-              emitter, eventId, key, savedNotification.getNotificationTypeEnum().name());
+              emitter, eventId, key, "happy", savedNotification.getNotificationTypeEnum().name());
         });
   }
 
@@ -181,9 +181,9 @@ public class NotificationService {
    * @param emitterId SseEmitter 객체 식별자 (이메일_식별자_시각)
    * @param data 전송 내용
    */
-  private void sendNotification(SseEmitter emitter, String eventId, String emitterId, Object data) {
+  private void sendNotification(SseEmitter emitter, String eventId, String emitterId, String eventName, Object data) {
     try {
-      emitter.send(SseEmitter.event().id(eventId).name("sse").data(data));
+      emitter.send(SseEmitter.event().id(eventId).name(eventName).data(data));
       log.info("[NotificationService's sendNotification executes]: 알림 전송 완료");
     } catch (IOException e) {
       emitterRepository.deletedById(emitterId);
@@ -236,7 +236,7 @@ public class NotificationService {
     emitters.forEach(
         (key, emitter) -> {
           sendNotification(
-              emitter, eventId, key, "[주문 실패]: " + serverErrorDto.getNotificationType());
+              emitter, eventId, key, "happy", "[주문 실패]: " + serverErrorDto.getNotificationType());
         });
   }
 
