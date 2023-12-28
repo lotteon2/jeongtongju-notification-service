@@ -80,4 +80,9 @@ public class NotificationRestController {
       response.sendRedirect(foundRedirectLink);
     }
   }
+
+  @PostMapping("/notifications/test")
+  public void test(@RequestHeader Long memberId, @RequestHeader MemberRoleEnum memberRole) {
+    notificationService.testNotificationProduce(memberId, memberRole);
+  }
 }

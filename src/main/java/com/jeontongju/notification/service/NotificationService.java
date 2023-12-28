@@ -9,11 +9,13 @@ import com.jeontongju.notification.dto.response.NotificationInfoForSingleInquiry
 import com.jeontongju.notification.dto.temp.MemberEmailForKeyDto;
 import com.jeontongju.notification.exception.NotificationNotFoundException;
 import com.jeontongju.notification.feign.AuthenticationClientService;
+import com.jeontongju.notification.kafka.NotificationProducer;
 import com.jeontongju.notification.mapper.NotificationMapper;
 import com.jeontongju.notification.repository.EmitterRepository;
 import com.jeontongju.notification.repository.NotificationRepository;
 import com.jeontongju.notification.utils.CustomErrMessage;
 import io.github.bitbox.bitbox.dto.ConsumerOrderListResponseDto;
+import io.github.bitbox.bitbox.dto.MemberInfoForNotificationDto;
 import io.github.bitbox.bitbox.dto.ServerErrorForNotificationDto;
 import io.github.bitbox.bitbox.enums.MemberRoleEnum;
 import io.github.bitbox.bitbox.enums.NotificationTypeEnum;
@@ -22,6 +24,8 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
+
+import io.github.bitbox.bitbox.util.KafkaTopicNameInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -39,6 +43,7 @@ public class NotificationService {
   private final NotificationMapper notificationMapper;
   private final AuthenticationClientService authenticationClientService;
   private final RedisTemplate<String, String> redisTemplate;
+  private final NotificationProducer notificationProducer;
 
   // SSE 연결 지속 시간 설정
   private static final Long DEFAULT_TIMEOUT = 60L * 60 * 5 * 1000;
@@ -48,13 +53,15 @@ public class NotificationService {
       NotificationRepository notificationRepository,
       NotificationMapper notificationMapper,
       AuthenticationClientService authenticationClientService,
-      RedisTemplate<String, String> redisTemplate) {
+      RedisTemplate<String, String> redisTemplate,
+      NotificationProducer notificationProducer) {
 
     this.emitterRepository = emitterRepository;
     this.notificationRepository = notificationRepository;
     this.notificationMapper = notificationMapper;
     this.authenticationClientService = authenticationClientService;
     this.redisTemplate = redisTemplate;
+    this.notificationProducer = notificationProducer;
   }
 
   /**
@@ -64,7 +71,7 @@ public class NotificationService {
    * @param lastEventId 마지막으로 받은 이벤트 식별자
    * @return {SseEmitter} SSE 연결 객체
    */
-  @Transactional
+//  @Transactional
   public SseEmitter subscribe(Long memberId, String lastEventId) {
 
     MemberEmailForKeyDto memberEmailDto =
@@ -312,5 +319,21 @@ public class NotificationService {
         .findById(notificationId)
         .orElseThrow(
             () -> new NotificationNotFoundException(CustomErrMessage.NOT_FOUND_NOTIFICATION));
+  }
+
+  public void testNotificationProduce(Long memberId, MemberRoleEnum memberRole) {
+
+    RecipientTypeEnum recipientType =
+            memberRole.equals(MemberRoleEnum.ROLE_CONSUMER)
+                    ? RecipientTypeEnum.ROLE_CONSUMER
+                    : RecipientTypeEnum.ROLE_SELLER;
+
+    notificationProducer.send(
+            KafkaTopicNameInfo.SEND_NOTIFICATION,
+            MemberInfoForNotificationDto.builder()
+                    .recipientId(memberId)
+                    .recipientType(recipientType)
+                    .notificationType(NotificationTypeEnum.OUT_OF_STOCK)
+                    .build());
   }
 }
