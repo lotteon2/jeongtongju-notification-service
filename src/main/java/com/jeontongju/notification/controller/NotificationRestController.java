@@ -1,9 +1,11 @@
 package com.jeontongju.notification.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jeontongju.notification.dto.response.EmitterInfoForSingleInquiryDto;
 import com.jeontongju.notification.dto.response.NotificationInfoForInquiryResponseDto;
 import com.jeontongju.notification.service.NotificationService;
 import io.github.bitbox.bitbox.dto.ResponseFormat;
+import io.github.bitbox.bitbox.dto.ServerErrorForNotificationDto;
 import io.github.bitbox.bitbox.enums.MemberRoleEnum;
 import java.io.IOException;
 import java.util.List;
@@ -104,6 +106,21 @@ public class NotificationRestController {
                 .message(HttpStatus.OK.name())
                 .detail("emitters 목록 조회 성공")
                 .data(notificationService.getEmitters(memberId, memberRole))
+                .build());
+  }
+
+  @PostMapping("/test/fail")
+  public ResponseEntity<ResponseFormat<Void>> testFail(
+      @RequestHeader Long memberId, @RequestBody ServerErrorForNotificationDto serverErrorDto)
+      throws JsonProcessingException {
+
+    notificationService.sendError(serverErrorDto);
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .detail("주문 실패 로직 성공")
                 .build());
   }
 }

@@ -1,15 +1,14 @@
 package com.jeontongju.notification.mapper;
 
 import com.jeontongju.notification.domain.Notification;
-
 import com.jeontongju.notification.dto.response.NotificationInfoForInquiryResponseDto;
 import com.jeontongju.notification.dto.response.NotificationInfoForSingleInquiryDto;
+import com.jeontongju.notification.dto.response.NotificationInfoResponseDto;
 import io.github.bitbox.bitbox.enums.NotificationTypeEnum;
 import io.github.bitbox.bitbox.enums.RecipientTypeEnum;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.stereotype.Component;
 
 @Component
 public class NotificationMapper {
@@ -65,5 +64,10 @@ public class NotificationMapper {
         .notReadcounts(notReadCounts)
         .notifications(notifications)
         .build();
+  }
+
+  public NotificationInfoResponseDto toNotificationDto(Long notificationId, Object data) {
+
+    return NotificationInfoResponseDto.builder().notificationId(notificationId).data(data).build();
   }
 }

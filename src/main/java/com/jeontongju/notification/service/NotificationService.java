@@ -7,6 +7,7 @@ import com.jeontongju.notification.domain.Notification;
 import com.jeontongju.notification.dto.response.EmitterInfoForSingleInquiryDto;
 import com.jeontongju.notification.dto.response.NotificationInfoForInquiryResponseDto;
 import com.jeontongju.notification.dto.response.NotificationInfoForSingleInquiryDto;
+import com.jeontongju.notification.dto.response.NotificationInfoResponseDto;
 import com.jeontongju.notification.dto.temp.MemberEmailForKeyDto;
 import com.jeontongju.notification.exception.NotificationNotFoundException;
 import com.jeontongju.notification.feign.AuthenticationClientService;
@@ -21,14 +22,12 @@ import io.github.bitbox.bitbox.dto.ServerErrorForNotificationDto;
 import io.github.bitbox.bitbox.enums.MemberRoleEnum;
 import io.github.bitbox.bitbox.enums.NotificationTypeEnum;
 import io.github.bitbox.bitbox.enums.RecipientTypeEnum;
+import io.github.bitbox.bitbox.util.KafkaTopicNameInfo;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import io.github.bitbox.bitbox.util.KafkaTopicNameInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -93,7 +92,13 @@ public class NotificationService {
     // 연결이 생성되었을 시, 확인용 더미 이벤트 전송
     log.info("[NotificationService's subscribe's executes]: 연결 생성");
     sendNotification(
-        emitter, eventId, emitterId, "connect", "EventStream Created. [email=" + username + "]");
+        emitter,
+        eventId,
+        emitterId,
+        "connect",
+        NotificationInfoResponseDto.builder()
+            .data("EventStream Created. [email=" + username + "]")
+            .build());
 
     // 미수신 이벤트 전송
     if (hasLostData(lastEventId)) {
@@ -126,14 +131,26 @@ public class NotificationService {
   private void sendLostData(
       String lastEventId, String username, Long memberId, String emitterId, SseEmitter emitter) {
 
-    log.info("[NotificationService's sendLostData executes]: " + username + " " + memberId + " " + lastEventId);
-    Map<String, Object> eventCaches = emitterRepository.findAllEventCacheStartWithByEmail(username + "_" + memberId);
+    log.info(
+        "[NotificationService's sendLostData executes]: "
+            + username
+            + " "
+            + memberId
+            + " "
+            + lastEventId);
+    Map<String, Object> eventCaches =
+        emitterRepository.findAllEventCacheStartWithByEmail(username + "_" + memberId);
     eventCaches.entrySet().stream()
         .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
         .forEach(
             entry -> {
-                sendNotification(emitter, entry.getKey(), emitterId, "happy", entry.getValue());
-                log.info("[In eventCaches]: " + emitterId + " " + "send");
+              sendNotification(
+                  emitter,
+                  entry.getKey(),
+                  emitterId,
+                  "happy",
+                  notificationMapper.toNotificationDto(-1L, entry.getValue()));
+              log.info("[In eventCaches]: " + emitterId + " " + "send");
             });
   }
 
@@ -171,7 +188,13 @@ public class NotificationService {
           // 알림 전송
           log.info("이벤트 알림 전송");
           sendNotification(
-              emitter, eventId, key, "happy", savedNotification.getNotificationTypeEnum().name());
+              emitter,
+              eventId,
+              key,
+              "happy",
+              notificationMapper.toNotificationDto(
+                  savedNotification.getNotificationId(),
+                  savedNotification.getNotificationTypeEnum().name()));
         });
   }
 
@@ -195,7 +218,11 @@ public class NotificationService {
    * @param data 전송 내용
    */
   private void sendNotification(
-      SseEmitter emitter, String eventId, String emitterId, String eventName, Object data) {
+      SseEmitter emitter,
+      String eventId,
+      String emitterId,
+      String eventName,
+      NotificationInfoResponseDto data) {
     try {
       emitter.send(SseEmitter.event().id(eventId).name(eventName).data(data));
       log.info("[NotificationService's sendNotification executes]: 알림 전송 완료: " + eventName);
@@ -231,12 +258,13 @@ public class NotificationService {
     // redis에 오류난 주문 내역 저장
     stringStringValueOperations.set(redisKey, stringFakeOrder);
 
-    notificationRepository.save(
-        notificationMapper.toIncludedRedirectLinkEntity(
-            consumerId,
-            RecipientTypeEnum.ROLE_CONSUMER,
-            serverErrorDto.getNotificationType(),
-            "https://consumer.jeontongju-dev.shop/orderdetail"));
+    Notification savedNotification =
+        notificationRepository.save(
+            notificationMapper.toIncludedRedirectLinkEntity(
+                consumerId,
+                RecipientTypeEnum.ROLE_CONSUMER,
+                serverErrorDto.getNotificationType(),
+                "https://consumer.jeontongju-dev.shop/orderdetail"));
 
     MemberEmailForKeyDto memberEmailForKey =
         authenticationClientService.getMemberEmailForKey(consumerId);
@@ -250,7 +278,13 @@ public class NotificationService {
     emitters.forEach(
         (key, emitter) -> {
           sendNotification(
-              emitter, eventId, key, "happy", "[주문 실패]: " + serverErrorDto.getNotificationType());
+              emitter,
+              eventId,
+              key,
+              "happy",
+              notificationMapper.toNotificationDto(
+                  savedNotification.getNotificationId(),
+                  "[주문 실패]: " + serverErrorDto.getNotificationType()));
         });
   }
 
@@ -355,21 +389,20 @@ public class NotificationService {
             .build());
   }
 
-  public List<EmitterInfoForSingleInquiryDto> getEmitters(Long memberId, MemberRoleEnum memberRole) {
+  public List<EmitterInfoForSingleInquiryDto> getEmitters(
+      Long memberId, MemberRoleEnum memberRole) {
 
-    String email =
-            authenticationClientService.getMemberEmailForKey(memberId).getEmail();
+    String email = authenticationClientService.getMemberEmailForKey(memberId).getEmail();
     String gerneratedId = makeTimeIncludedId(email, memberId);
-    Map<String, SseEmitter> allEmitterStartWithByEmail = emitterRepository.findAllEmitterStartWithByEmail(email);
+    Map<String, SseEmitter> allEmitterStartWithByEmail =
+        emitterRepository.findAllEmitterStartWithByEmail(email);
 
     List<EmitterInfoForSingleInquiryDto> emitters = new ArrayList<>();
-    for(String key : allEmitterStartWithByEmail.keySet()) {
-      if(key.startsWith(email + "_" + memberId)) {
+    for (String key : allEmitterStartWithByEmail.keySet()) {
+      if (key.startsWith(email + "_" + memberId)) {
         SseEmitter sseEmitter = allEmitterStartWithByEmail.get(key);
-        EmitterInfoForSingleInquiryDto build = EmitterInfoForSingleInquiryDto.builder()
-                .emitterId(key)
-                .sseEmitter(sseEmitter)
-                .build();
+        EmitterInfoForSingleInquiryDto build =
+            EmitterInfoForSingleInquiryDto.builder().emitterId(key).sseEmitter(sseEmitter).build();
         emitters.add(build);
       }
     }
