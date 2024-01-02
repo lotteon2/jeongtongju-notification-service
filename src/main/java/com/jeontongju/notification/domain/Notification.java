@@ -44,7 +44,7 @@ public class Notification {
   @Builder.Default
   private Boolean isRead = false;
 
-  @Column(name = "redirect_link")
+  @Column(name = "redirect_link", nullable = false)
   private String redirectLink;
 
   @CreatedDate

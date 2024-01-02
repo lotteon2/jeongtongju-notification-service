@@ -18,10 +18,21 @@ public class NotificationMapper {
       RecipientTypeEnum recipientTypeEnum,
       NotificationTypeEnum notificationTypeEnum) {
 
+    String redirectLink;
+    if (notificationTypeEnum == NotificationTypeEnum.OUT_OF_STOCK) {
+      redirectLink = "https://seller.jeontongju-dev.shop/product/list";
+    } else if (notificationTypeEnum == NotificationTypeEnum.BALANCE_ACCOUNTS) {
+      redirectLink = "https://seller.jeontongju-dev.shop/cash/up";
+    } else if (notificationTypeEnum == NotificationTypeEnum.SUCCESS_SUBSCRIPTION_PAYMENTS) {
+      redirectLink = "https://consumer.jeontongju-dev.shop/membership/list";
+    } else {
+      redirectLink = "https://consumer.jeontongju-dev.shop/orderdetail";
+    }
     return Notification.builder()
         .recipientId(recipientId)
         .recipientTypeEnum(recipientTypeEnum)
         .notificationTypeEnum(notificationTypeEnum)
+        .redirectLink(redirectLink)
         .build();
   }
 
