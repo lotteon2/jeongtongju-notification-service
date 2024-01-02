@@ -288,6 +288,7 @@ public class NotificationService {
         });
   }
 
+  @Transactional
   public String getRedirectLink(Long memberId, Long notificationId) {
 
     readNotification(notificationId);
