@@ -66,14 +66,13 @@ public class NotificationRestController {
   }
 
   @GetMapping("/notifications/{notificationId}/to")
-  public void redirectByNotificationLink(
+  public ResponseEntity<Void> redirectByNotificationLink(
       @RequestHeader Long memberId, @PathVariable Long notificationId, HttpServletResponse response)
       throws IOException {
 
     String foundRedirectLink = notificationService.getRedirectLink(memberId, notificationId);
-    if (foundRedirectLink != null) {
-      response.sendRedirect(foundRedirectLink);
-    }
+    response.sendRedirect(foundRedirectLink);
+    return ResponseEntity.ok().build();
   }
 
   @PostMapping("/notifications/test")
