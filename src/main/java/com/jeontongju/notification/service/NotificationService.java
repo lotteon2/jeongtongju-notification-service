@@ -290,12 +290,27 @@ public class NotificationService {
 
   public String getRedirectLink(Long memberId, Long notificationId) {
 
+    readNotification(notificationId);
+
     Notification foundNotification = getNotification(notificationId);
+
+    if(foundNotification.getRedirectLink() == null) {
+      throw new RuntimeException(CustomErrMessage.NOT_FOUND_REDIRECT_LINK);
+    }
+
     ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
+
+    log.info("redis get start..");
+    String redisValue = stringStringValueOperations.get("CONSUMER_" + memberId);
+    log.info("[redis value]: " + redisValue);
+
+    if(redisValue == null) {
+      return foundNotification.getRedirectLink();
+    }
 
     return foundNotification.getRedirectLink()
         + "/"
-        + URLEncoder.encode(stringStringValueOperations.get("CONSUMER_" + memberId));
+        + URLEncoder.encode(redisValue);
   }
 
   /**
