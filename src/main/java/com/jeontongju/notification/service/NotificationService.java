@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jeontongju.notification.domain.Notification;
-import com.jeontongju.notification.dto.response.EmitterInfoForSingleInquiryDto;
-import com.jeontongju.notification.dto.response.NotificationInfoForInquiryResponseDto;
-import com.jeontongju.notification.dto.response.NotificationInfoForSingleInquiryDto;
-import com.jeontongju.notification.dto.response.NotificationInfoResponseDto;
+import com.jeontongju.notification.dto.response.*;
 import com.jeontongju.notification.dto.temp.MemberEmailForKeyDto;
 import com.jeontongju.notification.exception.NotificationNotFoundException;
 import com.jeontongju.notification.feign.AuthenticationClientService;
@@ -328,7 +325,7 @@ public class NotificationService {
   }
 
   @Transactional
-  public String getRedirectLink(Long memberId, Long notificationId) {
+  public UrlForRedirectResponseDto getRedirectLink(Long memberId, Long notificationId) {
 
     readNotification(notificationId);
 
@@ -345,10 +342,11 @@ public class NotificationService {
     log.info("[redis value]: " + redisValue);
 
     if (redisValue == null) {
-      return foundNotification.getRedirectLink();
+      return notificationMapper.toRedirectUrlDto(foundNotification.getRedirectLink());
     }
 
-    return foundNotification.getRedirectLink() + "/" + URLEncoder.encode(redisValue);
+    return notificationMapper.toRedirectUrlDto(
+        foundNotification.getRedirectLink() + "/" + URLEncoder.encode(redisValue));
   }
 
   /**

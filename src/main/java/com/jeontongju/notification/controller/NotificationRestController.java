@@ -3,6 +3,7 @@ package com.jeontongju.notification.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.jeontongju.notification.dto.response.EmitterInfoForSingleInquiryDto;
 import com.jeontongju.notification.dto.response.NotificationInfoForInquiryResponseDto;
+import com.jeontongju.notification.dto.response.UrlForRedirectResponseDto;
 import com.jeontongju.notification.service.NotificationService;
 import io.github.bitbox.bitbox.dto.ResponseFormat;
 import io.github.bitbox.bitbox.dto.ServerErrorForNotificationDto;
@@ -66,13 +67,17 @@ public class NotificationRestController {
   }
 
   @GetMapping("/notifications/{notificationId}/to")
-  public ResponseEntity<Void> redirectByNotificationLink(
+  public ResponseEntity<ResponseFormat<UrlForRedirectResponseDto>> redirectByNotificationLink(
       @RequestHeader Long memberId, @PathVariable Long notificationId, HttpServletResponse response)
       throws IOException {
 
-    String foundRedirectLink = notificationService.getRedirectLink(memberId, notificationId);
-    response.sendRedirect(foundRedirectLink);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<UrlForRedirectResponseDto>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .data(notificationService.getRedirectLink(memberId, notificationId))
+                .build());
   }
 
   @PostMapping("/notifications/test")
