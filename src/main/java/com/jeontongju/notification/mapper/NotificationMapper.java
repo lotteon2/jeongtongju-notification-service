@@ -78,9 +78,13 @@ public class NotificationMapper {
         .build();
   }
 
-  public NotificationInfoResponseDto toNotificationDto(Long notificationId, Object data) {
+  public NotificationInfoResponseDto toNotificationDto(Long notificationId, String redirectUrl, Object data) {
 
-    return NotificationInfoResponseDto.builder().notificationId(notificationId).data(data).build();
+    return NotificationInfoResponseDto.builder()
+            .notificationId(notificationId)
+            .redirectUrl(redirectUrl)
+            .data(data)
+            .build();
   }
 
   public UrlForRedirectResponseDto toRedirectUrlDto(String redirectUrl) {

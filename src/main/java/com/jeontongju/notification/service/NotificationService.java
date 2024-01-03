@@ -146,7 +146,7 @@ public class NotificationService {
                   entry.getKey(),
                   emitterId,
                   "happy",
-                  notificationMapper.toNotificationDto(-1L, entry.getValue()));
+                  notificationMapper.toNotificationDto(-1L, null, entry.getValue()));
               log.info("[In eventCaches]: " + emitterId + " " + "send");
             });
   }
@@ -191,6 +191,7 @@ public class NotificationService {
               "happy",
               notificationMapper.toNotificationDto(
                   savedNotification.getNotificationId(),
+                  savedNotification.getRedirectLink(),
                   savedNotification.getNotificationTypeEnum().name()));
         });
   }
@@ -280,7 +281,7 @@ public class NotificationService {
               key,
               "happy",
               notificationMapper.toNotificationDto(
-                  savedNotification.getNotificationId(),
+                  savedNotification.getNotificationId(), null,
                   "[주문 실패]: " + serverErrorDto.getNotificationType()));
         });
   }
@@ -319,7 +320,7 @@ public class NotificationService {
               key,
               "happy",
               notificationMapper.toNotificationDto(
-                  savedNotification.getNotificationId(),
+                  savedNotification.getNotificationId(), null,
                   "[주문 실패]: " + memberInfoDto.getNotificationType()));
         });
   }
