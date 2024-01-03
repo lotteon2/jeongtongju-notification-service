@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 public class NotificationInfoResponseDto {
 
   private Long notificationId;
+  private String redirectUrl;
   private Object data;
 }
