@@ -4,6 +4,7 @@ import com.jeontongju.notification.domain.Notification;
 import com.jeontongju.notification.dto.response.NotificationInfoForInquiryResponseDto;
 import com.jeontongju.notification.dto.response.NotificationInfoForSingleInquiryDto;
 import com.jeontongju.notification.dto.response.NotificationInfoResponseDto;
+import com.jeontongju.notification.dto.response.UrlForRedirectResponseDto;
 import io.github.bitbox.bitbox.enums.NotificationTypeEnum;
 import io.github.bitbox.bitbox.enums.RecipientTypeEnum;
 import java.util.ArrayList;
@@ -80,5 +81,10 @@ public class NotificationMapper {
   public NotificationInfoResponseDto toNotificationDto(Long notificationId, Object data) {
 
     return NotificationInfoResponseDto.builder().notificationId(notificationId).data(data).build();
+  }
+
+  public UrlForRedirectResponseDto toRedirectUrlDto(String redirectUrl) {
+
+    return UrlForRedirectResponseDto.builder().redirectUrl(redirectUrl).build();
   }
 }
