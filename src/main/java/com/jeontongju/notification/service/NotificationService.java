@@ -288,6 +288,45 @@ public class NotificationService {
         });
   }
 
+  /**
+   * 서버 오류로 주문 취소가 안 된 경우 주문 취소 실패 알림 전송
+   *
+   * @param memberInfoDto 소비자 정보 + 오류난 서버
+   */
+  @Transactional
+  public void sendCancelingServerError(MemberInfoForNotificationDto memberInfoDto) {
+
+    Long recipientId = memberInfoDto.getRecipientId();
+
+    Notification savedNotification =
+        notificationRepository.save(
+            notificationMapper.toIncludedRedirectLinkEntity(
+                recipientId,
+                memberInfoDto.getRecipientType(),
+                memberInfoDto.getNotificationType(),
+                ""));
+
+    MemberEmailForKeyDto memberEmailForKey =
+        authenticationClientService.getMemberEmailForKey(recipientId);
+    Map<String, SseEmitter> emitters =
+        emitterRepository.findAllEmitterStartWithByEmail(
+            memberEmailForKey.getEmail() + "_" + recipientId);
+
+    String eventId = makeTimeIncludedId(memberEmailForKey.getEmail(), recipientId);
+
+    emitters.forEach(
+        (key, emitter) -> {
+          sendNotification(
+              emitter,
+              eventId,
+              key,
+              "happy",
+              notificationMapper.toNotificationDto(
+                  savedNotification.getNotificationId(),
+                  "[주문 실패]: " + memberInfoDto.getNotificationType()));
+        });
+  }
+
   @Transactional
   public String getRedirectLink(Long memberId, Long notificationId) {
 
@@ -295,7 +334,7 @@ public class NotificationService {
 
     Notification foundNotification = getNotification(notificationId);
 
-    if(foundNotification.getRedirectLink() == null) {
+    if (foundNotification.getRedirectLink() == null) {
       throw new RuntimeException(CustomErrMessage.NOT_FOUND_REDIRECT_LINK);
     }
 
@@ -305,13 +344,11 @@ public class NotificationService {
     String redisValue = stringStringValueOperations.get("CONSUMER_" + memberId);
     log.info("[redis value]: " + redisValue);
 
-    if(redisValue == null) {
+    if (redisValue == null) {
       return foundNotification.getRedirectLink();
     }
 
-    return foundNotification.getRedirectLink()
-        + "/"
-        + URLEncoder.encode(redisValue);
+    return foundNotification.getRedirectLink() + "/" + URLEncoder.encode(redisValue);
   }
 
   /**
