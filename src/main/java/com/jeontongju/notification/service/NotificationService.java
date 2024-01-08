@@ -104,7 +104,7 @@ public class NotificationService {
 
     // 읽지 않은 이벤트 전송
     List<Notification> unreadEvents = getUnreadEvents(memberId);
-    if (unreadEvents != null) {
+    if (!unreadEvents.isEmpty()) {
 
       for (Notification unreadEvent : unreadEvents) {
         sendNotification(
