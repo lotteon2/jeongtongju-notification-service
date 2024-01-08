@@ -102,7 +102,38 @@ public class NotificationService {
       sendLostData(lastEventId, username, memberId, emitterId, emitter);
     }
 
+    // 읽지 않은 이벤트 전송
+    List<Notification> unreadEvents = getUnreadEvents(memberId);
+    if (unreadEvents != null) {
+
+      for (Notification unreadEvent : unreadEvents) {
+        sendNotification(
+            emitter,
+            eventId,
+            emitterId,
+            "connect",
+            NotificationInfoResponseDto.builder()
+                .notificationId(unreadEvent.getNotificationId())
+                .redirectUrl(unreadEvent.getRedirectLink())
+                .data(unreadEvent.getNotificationTypeEnum().name())
+                .build());
+      }
+    }
+
     return emitter;
+  }
+
+  /**
+   * 읽지 않은 알림 가져오기
+   *
+   * @param memberId 로그인 한 회원 식별자
+   * @return {List<Notification>} 읽지 않은 알림 객체
+   */
+  private List<Notification> getUnreadEvents(Long memberId) {
+
+    List<Notification> foundUnreadNotifications =
+        notificationRepository.findByRecipientIdAndIsRead(memberId, false);
+    return foundUnreadNotifications;
   }
 
   /**
@@ -281,7 +312,8 @@ public class NotificationService {
               key,
               "happy",
               notificationMapper.toNotificationDto(
-                  savedNotification.getNotificationId(), null,
+                  savedNotification.getNotificationId(),
+                  null,
                   "[주문 실패]: " + serverErrorDto.getNotificationType()));
         });
   }
@@ -320,14 +352,15 @@ public class NotificationService {
               key,
               "happy",
               notificationMapper.toNotificationDto(
-                  savedNotification.getNotificationId(), null,
+                  savedNotification.getNotificationId(),
+                  null,
                   "[주문 실패]: " + memberInfoDto.getNotificationType()));
         });
   }
 
   /**
    * 알림 클릭 시, 읽음 처리와 함께 Redirect 링크 반환
-   * 
+   *
    * @param memberId 로그인 한 회원 식별자
    * @param notificationId 읽음 처리할 알림 식별자
    * @return {UrlForRedirectResponseDto} 해당 알림의 Redirect Link 정보
