@@ -111,7 +111,7 @@ public class NotificationService {
             emitter,
             eventId,
             emitterId,
-            "connect",
+            "happy",
             NotificationInfoResponseDto.builder()
                 .notificationId(unreadEvent.getNotificationId())
                 .redirectUrl(unreadEvent.getRedirectLink())
