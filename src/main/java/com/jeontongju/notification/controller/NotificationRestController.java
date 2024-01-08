@@ -32,6 +32,7 @@ public class NotificationRestController {
       @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "")
           String lastEventId,
       HttpServletResponse response) {
+
     response.addHeader("X-Accel-Buffering", "no");
     response.addHeader(HttpHeaders.CONNECTION, "keep-alive");
     response.addHeader(HttpHeaders.CACHE_CONTROL, "no-cache");

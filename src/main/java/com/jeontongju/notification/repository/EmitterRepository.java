@@ -1,6 +1,8 @@
 package com.jeontongju.notification.repository;
 
 import java.util.Map;
+
+import com.jeontongju.notification.domain.Notification;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 public interface EmitterRepository {
@@ -13,5 +15,5 @@ public interface EmitterRepository {
 
   Map<String, SseEmitter> findAllEmitterStartWithByEmail(String email);
 
-  void saveEventCache(String key, Object event);
+  void saveEventCache(String key, Notification event);
 }

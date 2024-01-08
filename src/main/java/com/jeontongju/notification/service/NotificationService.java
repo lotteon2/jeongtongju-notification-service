@@ -325,6 +325,13 @@ public class NotificationService {
         });
   }
 
+  /**
+   * 알림 클릭 시, 읽음 처리와 함께 Redirect 링크 반환
+   * 
+   * @param memberId 로그인 한 회원 식별자
+   * @param notificationId 읽음 처리할 알림 식별자
+   * @return {UrlForRedirectResponseDto} 해당 알림의 Redirect Link 정보
+   */
   @Transactional
   public UrlForRedirectResponseDto getRedirectLink(Long memberId, Long notificationId) {
 
