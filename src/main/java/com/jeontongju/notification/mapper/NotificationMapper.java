@@ -80,6 +80,20 @@ public class NotificationMapper {
 
   public NotificationInfoResponseDto toNotificationDto(Long notificationId, String redirectUrl, Object data) {
 
+    if(data instanceof Notification && redirectUrl == null) {
+      Notification savedNotification = (Notification) data;
+
+      NotificationTypeEnum notificationTypeEnum = savedNotification.getNotificationTypeEnum();
+      if (notificationTypeEnum == NotificationTypeEnum.OUT_OF_STOCK) { // 재고 소진
+        redirectUrl = "https://seller.jeontongju-dev.shop/product/list";
+      } else if (notificationTypeEnum == NotificationTypeEnum.BALANCE_ACCOUNTS) { // 정산
+        redirectUrl = "https://seller.jeontongju-dev.shop/cash/up";
+      } else if (notificationTypeEnum == NotificationTypeEnum.SUCCESS_SUBSCRIPTION_PAYMENTS) { // 구독 결제
+        redirectUrl = "https://consumer.jeontongju-dev.shop/membership/list";
+      } else {
+        redirectUrl = "https://consumer.jeontongju-dev.shop/orderdetail";
+      }
+    }
     return NotificationInfoResponseDto.builder()
             .notificationId(notificationId)
             .redirectUrl(redirectUrl)
