@@ -10,4 +10,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
   Optional<Notification> findByNotificationId(Long notificationId);
 
   List<Notification> findByRecipientId(Long memberId);
+
+  List<Notification> findByRecipientIdAndIsRead(Long memberId, boolean isRead);
 }

@@ -4,6 +4,7 @@ import com.jeontongju.notification.domain.Notification;
 import com.jeontongju.notification.dto.response.NotificationInfoForInquiryResponseDto;
 import com.jeontongju.notification.dto.response.NotificationInfoForSingleInquiryDto;
 import com.jeontongju.notification.dto.response.NotificationInfoResponseDto;
+import com.jeontongju.notification.dto.response.UrlForRedirectResponseDto;
 import io.github.bitbox.bitbox.enums.NotificationTypeEnum;
 import io.github.bitbox.bitbox.enums.RecipientTypeEnum;
 import java.util.ArrayList;
@@ -77,8 +78,31 @@ public class NotificationMapper {
         .build();
   }
 
-  public NotificationInfoResponseDto toNotificationDto(Long notificationId, Object data) {
+  public NotificationInfoResponseDto toNotificationDto(Long notificationId, String redirectUrl, Object data) {
 
-    return NotificationInfoResponseDto.builder().notificationId(notificationId).data(data).build();
+    if(data instanceof Notification && redirectUrl == null) {
+      Notification savedNotification = (Notification) data;
+
+      NotificationTypeEnum notificationTypeEnum = savedNotification.getNotificationTypeEnum();
+      if (notificationTypeEnum == NotificationTypeEnum.OUT_OF_STOCK) { // 재고 소진
+        redirectUrl = "https://seller.jeontongju-dev.shop/product/list";
+      } else if (notificationTypeEnum == NotificationTypeEnum.BALANCE_ACCOUNTS) { // 정산
+        redirectUrl = "https://seller.jeontongju-dev.shop/cash/up";
+      } else if (notificationTypeEnum == NotificationTypeEnum.SUCCESS_SUBSCRIPTION_PAYMENTS) { // 구독 결제
+        redirectUrl = "https://consumer.jeontongju-dev.shop/membership/list";
+      } else {
+        redirectUrl = "https://consumer.jeontongju-dev.shop/orderdetail";
+      }
+    }
+    return NotificationInfoResponseDto.builder()
+            .notificationId(notificationId)
+            .redirectUrl(redirectUrl)
+            .data(data)
+            .build();
+  }
+
+  public UrlForRedirectResponseDto toRedirectUrlDto(String redirectUrl) {
+
+    return UrlForRedirectResponseDto.builder().redirectUrl(redirectUrl).build();
   }
 }

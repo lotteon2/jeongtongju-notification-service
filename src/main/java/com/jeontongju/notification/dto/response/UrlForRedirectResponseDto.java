@@ -9,9 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Getter
-public class NotificationInfoResponseDto {
+public class UrlForRedirectResponseDto {
 
-  private Long notificationId;
   private String redirectUrl;
-  private Object data;
 }

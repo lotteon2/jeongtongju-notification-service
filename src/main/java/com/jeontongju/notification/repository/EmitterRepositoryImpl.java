@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import com.jeontongju.notification.domain.Notification;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -11,7 +12,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class EmitterRepositoryImpl implements EmitterRepository {
 
   private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
-  private final Map<String, Object> eventCache = new ConcurrentHashMap<>();
+  private final Map<String, Notification> eventCache = new ConcurrentHashMap<>();
 
   @Override
   public SseEmitter save(String emitterId, SseEmitter sseEmitter) {
@@ -40,7 +41,7 @@ public class EmitterRepositoryImpl implements EmitterRepository {
   }
 
   @Override
-  public void saveEventCache(String key, Object event) {
+  public void saveEventCache(String key, Notification event) {
     eventCache.put(key, event);
   }
 }

@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jeontongju.notification.domain.Notification;
-import com.jeontongju.notification.dto.response.EmitterInfoForSingleInquiryDto;
-import com.jeontongju.notification.dto.response.NotificationInfoForInquiryResponseDto;
-import com.jeontongju.notification.dto.response.NotificationInfoForSingleInquiryDto;
-import com.jeontongju.notification.dto.response.NotificationInfoResponseDto;
+import com.jeontongju.notification.dto.response.*;
 import com.jeontongju.notification.dto.temp.MemberEmailForKeyDto;
 import com.jeontongju.notification.exception.NotificationNotFoundException;
 import com.jeontongju.notification.feign.AuthenticationClientService;
@@ -105,7 +102,38 @@ public class NotificationService {
       sendLostData(lastEventId, username, memberId, emitterId, emitter);
     }
 
+    // 읽지 않은 이벤트 전송
+    List<Notification> unreadEvents = getUnreadEvents(memberId);
+    if (!unreadEvents.isEmpty()) {
+
+      for (Notification unreadEvent : unreadEvents) {
+        sendNotification(
+            emitter,
+            eventId,
+            emitterId,
+            "happy",
+            NotificationInfoResponseDto.builder()
+                .notificationId(unreadEvent.getNotificationId())
+                .redirectUrl(unreadEvent.getRedirectLink())
+                .data(unreadEvent.getNotificationTypeEnum().name())
+                .build());
+      }
+    }
+
     return emitter;
+  }
+
+  /**
+   * 읽지 않은 알림 가져오기
+   *
+   * @param memberId 로그인 한 회원 식별자
+   * @return {List<Notification>} 읽지 않은 알림 객체
+   */
+  private List<Notification> getUnreadEvents(Long memberId) {
+
+    List<Notification> foundUnreadNotifications =
+        notificationRepository.findByRecipientIdAndIsRead(memberId, false);
+    return foundUnreadNotifications;
   }
 
   /**
@@ -149,7 +177,7 @@ public class NotificationService {
                   entry.getKey(),
                   emitterId,
                   "happy",
-                  notificationMapper.toNotificationDto(-1L, entry.getValue()));
+                  notificationMapper.toNotificationDto(-1L, null, entry.getValue()));
               log.info("[In eventCaches]: " + emitterId + " " + "send");
             });
   }
@@ -194,6 +222,7 @@ public class NotificationService {
               "happy",
               notificationMapper.toNotificationDto(
                   savedNotification.getNotificationId(),
+                  savedNotification.getRedirectLink(),
                   savedNotification.getNotificationTypeEnum().name()));
         });
   }
@@ -284,18 +313,66 @@ public class NotificationService {
               "happy",
               notificationMapper.toNotificationDto(
                   savedNotification.getNotificationId(),
+                  null,
                   "[주문 실패]: " + serverErrorDto.getNotificationType()));
         });
   }
 
+  /**
+   * 서버 오류로 주문 취소가 안 된 경우 주문 취소 실패 알림 전송
+   *
+   * @param memberInfoDto 소비자 정보 + 오류난 서버
+   */
   @Transactional
-  public String getRedirectLink(Long memberId, Long notificationId) {
+  public void sendCancelingServerError(MemberInfoForNotificationDto memberInfoDto) {
+
+    Long recipientId = memberInfoDto.getRecipientId();
+
+    Notification savedNotification =
+        notificationRepository.save(
+            notificationMapper.toIncludedRedirectLinkEntity(
+                recipientId,
+                memberInfoDto.getRecipientType(),
+                memberInfoDto.getNotificationType(),
+                ""));
+
+    MemberEmailForKeyDto memberEmailForKey =
+        authenticationClientService.getMemberEmailForKey(recipientId);
+    Map<String, SseEmitter> emitters =
+        emitterRepository.findAllEmitterStartWithByEmail(
+            memberEmailForKey.getEmail() + "_" + recipientId);
+
+    String eventId = makeTimeIncludedId(memberEmailForKey.getEmail(), recipientId);
+
+    emitters.forEach(
+        (key, emitter) -> {
+          sendNotification(
+              emitter,
+              eventId,
+              key,
+              "happy",
+              notificationMapper.toNotificationDto(
+                  savedNotification.getNotificationId(),
+                  null,
+                  "[주문 실패]: " + memberInfoDto.getNotificationType()));
+        });
+  }
+
+  /**
+   * 알림 클릭 시, 읽음 처리와 함께 Redirect 링크 반환
+   *
+   * @param memberId 로그인 한 회원 식별자
+   * @param notificationId 읽음 처리할 알림 식별자
+   * @return {UrlForRedirectResponseDto} 해당 알림의 Redirect Link 정보
+   */
+  @Transactional
+  public UrlForRedirectResponseDto getRedirectLink(Long memberId, Long notificationId) {
 
     readNotification(notificationId);
 
     Notification foundNotification = getNotification(notificationId);
 
-    if(foundNotification.getRedirectLink() == null) {
+    if (foundNotification.getRedirectLink() == null) {
       throw new RuntimeException(CustomErrMessage.NOT_FOUND_REDIRECT_LINK);
     }
 
@@ -305,13 +382,12 @@ public class NotificationService {
     String redisValue = stringStringValueOperations.get("CONSUMER_" + memberId);
     log.info("[redis value]: " + redisValue);
 
-    if(redisValue == null) {
-      return foundNotification.getRedirectLink();
+    if (redisValue == null) {
+      return notificationMapper.toRedirectUrlDto(foundNotification.getRedirectLink());
     }
 
-    return foundNotification.getRedirectLink()
-        + "/"
-        + URLEncoder.encode(redisValue);
+    return notificationMapper.toRedirectUrlDto(
+        foundNotification.getRedirectLink() + "/" + URLEncoder.encode(redisValue));
   }
 
   /**
