@@ -45,7 +45,7 @@ public class NotificationService {
   private final NotificationProducer notificationProducer;
 
   // SSE 연결 지속 시간 설정
-  private static final Long DEFAULT_TIMEOUT = 60L * 60 * 5 * 1000;
+  private static final Long DEFAULT_TIMEOUT = 60L * 5 * 1000;
 
   public NotificationService(
       EmitterRepository emitterRepository,
@@ -98,9 +98,9 @@ public class NotificationService {
             .build());
 
     // 미수신 이벤트 전송
-    if (hasLostData(lastEventId)) {
-      sendLostData(lastEventId, username, memberId, emitterId, emitter);
-    }
+//    if (hasLostData(lastEventId)) {
+//      sendLostData(lastEventId, username, memberId, emitterId, emitter);
+//    }
 
     // 읽지 않은 이벤트 전송
     List<Notification> unreadEvents = getUnreadEvents(memberId);
@@ -485,9 +485,8 @@ public class NotificationService {
       Long memberId, MemberRoleEnum memberRole) {
 
     String email = authenticationClientService.getMemberEmailForKey(memberId).getEmail();
-    String gerneratedId = makeTimeIncludedId(email, memberId);
     Map<String, SseEmitter> allEmitterStartWithByEmail =
-        emitterRepository.findAllEmitterStartWithByEmail(email);
+        emitterRepository.findAllEmitterStartWithByEmail(email + "_" + memberId);
 
     List<EmitterInfoForSingleInquiryDto> emitters = new ArrayList<>();
     for (String key : allEmitterStartWithByEmail.keySet()) {
