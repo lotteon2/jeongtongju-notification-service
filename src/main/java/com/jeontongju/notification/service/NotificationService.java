@@ -98,9 +98,9 @@ public class NotificationService {
             .build());
 
     // 미수신 이벤트 전송
-//    if (hasLostData(lastEventId)) {
-//      sendLostData(lastEventId, username, memberId, emitterId, emitter);
-//    }
+    if (hasLostData(lastEventId)) {
+      sendLostData(lastEventId, username, memberId, emitterId, emitter);
+    }
 
     // 읽지 않은 이벤트 전송
     List<Notification> unreadEvents = getUnreadEvents(memberId);
@@ -111,7 +111,7 @@ public class NotificationService {
             emitter,
             eventId,
             emitterId,
-            "happy",
+            "connect",
             NotificationInfoResponseDto.builder()
                 .notificationId(unreadEvent.getNotificationId())
                 .redirectUrl(unreadEvent.getRedirectLink())
@@ -176,7 +176,7 @@ public class NotificationService {
                   emitter,
                   entry.getKey(),
                   emitterId,
-                  "happy",
+                  "connect",
                   notificationMapper.toNotificationDto(-1L, null, entry.getValue()));
               log.info("[In eventCaches]: " + emitterId + " " + "send");
             });
