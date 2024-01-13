@@ -98,9 +98,9 @@ public class NotificationService {
             .build());
 
     // 미수신 이벤트 전송
-    if (hasLostData(lastEventId)) {
-      sendLostData(lastEventId, username, memberId, emitterId, emitter);
-    }
+//    if (hasLostData(lastEventId)) {
+//      sendLostData(lastEventId, username, memberId, emitterId, emitter);
+//    }
 
     // 읽지 않은 이벤트 전송
     List<Notification> unreadEvents = getUnreadEvents(memberId);
