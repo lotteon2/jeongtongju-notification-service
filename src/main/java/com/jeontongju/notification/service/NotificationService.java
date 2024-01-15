@@ -368,6 +368,7 @@ public class NotificationService {
       throws JsonProcessingException {
 
     ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new JavaTimeModule());
 
     readNotification(notificationId);
 
