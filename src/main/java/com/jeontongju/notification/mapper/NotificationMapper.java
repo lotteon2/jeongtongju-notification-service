@@ -27,7 +27,7 @@ public class NotificationMapper {
     } else if (notificationTypeEnum == NotificationTypeEnum.SUCCESS_SUBSCRIPTION_PAYMENTS) {
       redirectLink = "https://jeontongju.shop/membership/list";
     } else {
-      redirectLink = "https://jeontongju.shop/order/order-fail";
+      redirectLink = "https://jeontongju.shop/orderdetail";
     }
     return Notification.builder()
         .recipientId(recipientId)
@@ -91,7 +91,7 @@ public class NotificationMapper {
       } else if (notificationTypeEnum == NotificationTypeEnum.SUCCESS_SUBSCRIPTION_PAYMENTS) { // 구독 결제
         redirectUrl = "https://jeontongju.shop/membership/list";
       } else {
-        redirectUrl = "https://jeontongju.shop/order/order-fail";
+        redirectUrl = "https://jeontongju.shop/orderdetail";
       }
     }
     return NotificationInfoResponseDto.builder()
