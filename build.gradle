@@ -30,6 +30,7 @@ dependencies {
 	implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus'
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-config'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	implementation 'org.springframework.cloud:spring-cloud-starter-bus-kafka'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
