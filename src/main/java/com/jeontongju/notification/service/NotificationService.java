@@ -291,7 +291,7 @@ public class NotificationService {
                 consumerId,
                 RecipientTypeEnum.ROLE_CONSUMER,
                 serverErrorDto.getNotificationType(),
-                "https://jeontongju.shop/order/order-fail"));
+                "https://jeontongju.shop/orderdetail"));
 
     MemberEmailForKeyDto memberEmailForKey =
         authenticationClientService.getMemberEmailForKey(consumerId);
@@ -364,7 +364,10 @@ public class NotificationService {
    * @return {UrlForRedirectResponseDto} 해당 알림의 Redirect Link 정보
    */
   @Transactional
-  public UrlForRedirectResponseDto getRedirectLink(Long memberId, Long notificationId) {
+  public UrlForRedirectResponseDto getRedirectLink(Long memberId, Long notificationId)
+      throws JsonProcessingException {
+
+    ObjectMapper objectMapper = new ObjectMapper();
 
     readNotification(notificationId);
 
@@ -382,8 +385,15 @@ public class NotificationService {
       return notificationMapper.toRedirectUrlDto(foundNotification.getRedirectLink());
     }
 
+    ConsumerOrderListResponseDto consumerOrderListResponseDto =
+        objectMapper.readValue(redisValue, ConsumerOrderListResponseDto.class);
+
     return notificationMapper.toRedirectUrlDto(
-        foundNotification.getRedirectLink() + "/" + URLEncoder.encode(redisValue));
+        foundNotification.getRedirectLink()
+            + "/"
+            + consumerOrderListResponseDto.getOrder().getOrdersId()
+            + "?"
+            + URLEncoder.encode(redisValue));
   }
 
   /**
