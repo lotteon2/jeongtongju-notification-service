@@ -21,13 +21,13 @@ public class NotificationMapper {
 
     String redirectLink;
     if (notificationTypeEnum == NotificationTypeEnum.OUT_OF_STOCK) {
-      redirectLink = "https://seller.jeontongju-dev.shop/product/list";
+      redirectLink = "https://jeontongju-front-jumo-nine.vercel.app/product/list";
     } else if (notificationTypeEnum == NotificationTypeEnum.BALANCE_ACCOUNTS) {
-      redirectLink = "https://seller.jeontongju-dev.shop/cash/up";
+      redirectLink = "https://jeontongju-front-jumo-nine.vercel.app/cash/up";
     } else if (notificationTypeEnum == NotificationTypeEnum.SUCCESS_SUBSCRIPTION_PAYMENTS) {
-      redirectLink = "https://consumer.jeontongju-dev.shop/membership/list";
+      redirectLink = "https://jeontongju.shop/membership/list";
     } else {
-      redirectLink = "https://consumer.jeontongju-dev.shop/orderdetail";
+      redirectLink = "https://jeontongju.shop/orderdetail";
     }
     return Notification.builder()
         .recipientId(recipientId)
@@ -85,13 +85,13 @@ public class NotificationMapper {
 
       NotificationTypeEnum notificationTypeEnum = savedNotification.getNotificationTypeEnum();
       if (notificationTypeEnum == NotificationTypeEnum.OUT_OF_STOCK) { // 재고 소진
-        redirectUrl = "https://seller.jeontongju-dev.shop/product/list";
+        redirectUrl = "https://jeontongju-front-jumo-nine.vercel.app/product/list";
       } else if (notificationTypeEnum == NotificationTypeEnum.BALANCE_ACCOUNTS) { // 정산
-        redirectUrl = "https://seller.jeontongju-dev.shop/cash/up";
+        redirectUrl = "https://jeontongju-front-jumo-nine.vercel.app/cash/up";
       } else if (notificationTypeEnum == NotificationTypeEnum.SUCCESS_SUBSCRIPTION_PAYMENTS) { // 구독 결제
-        redirectUrl = "https://consumer.jeontongju-dev.shop/membership/list";
+        redirectUrl = "https://jeontongju.shop/membership/list";
       } else {
-        redirectUrl = "https://consumer.jeontongju-dev.shop/orderdetail";
+        redirectUrl = "https://jeontongju.shop/orderdetail";
       }
     }
     return NotificationInfoResponseDto.builder()
