@@ -98,9 +98,9 @@ public class NotificationService {
             .build());
 
     // 미수신 이벤트 전송
-//    if (hasLostData(lastEventId)) {
-//      sendLostData(lastEventId, username, memberId, emitterId, emitter);
-//    }
+    //    if (hasLostData(lastEventId)) {
+    //      sendLostData(lastEventId, username, memberId, emitterId, emitter);
+    //    }
 
     // 읽지 않은 이벤트 전송
     List<Notification> unreadEvents = getUnreadEvents(memberId);
@@ -119,7 +119,6 @@ public class NotificationService {
                 .build());
       }
     }
-
     return emitter;
   }
 
@@ -212,7 +211,7 @@ public class NotificationService {
     emitters.forEach(
         (key, emitter) -> {
           // 이벤트 캐시에 저장
-          emitterRepository.saveEventCache(key, savedNotification);
+          // emitterRepository.saveEventCache(key, savedNotification);
           // 알림 전송
           log.info("이벤트 알림 전송");
           sendNotification(
@@ -283,7 +282,6 @@ public class NotificationService {
     ConsumerOrderListResponseDto fakeOrder = serverErrorDto.getError().createFakeOrder();
     String stringFakeOrder = objectMapper.writeValueAsString(fakeOrder);
 
-    log.info("stringFakeOrder >> " + stringFakeOrder);
     // redis에 오류난 주문 내역 저장
     stringStringValueOperations.set(redisKey, stringFakeOrder);
 
@@ -378,9 +376,7 @@ public class NotificationService {
 
     ValueOperations<String, String> stringStringValueOperations = redisTemplate.opsForValue();
 
-    log.info("redis get start..");
     String redisValue = stringStringValueOperations.get("CONSUMER_" + memberId);
-    log.info("[redis value]: " + redisValue);
 
     if (redisValue == null) {
       return notificationMapper.toRedirectUrlDto(foundNotification.getRedirectLink());
