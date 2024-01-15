@@ -291,7 +291,7 @@ public class NotificationService {
                 consumerId,
                 RecipientTypeEnum.ROLE_CONSUMER,
                 serverErrorDto.getNotificationType(),
-                "https://jeontongju.shop/orderdetail"));
+                "https://jeontongju.shop/order/order-fail"));
 
     MemberEmailForKeyDto memberEmailForKey =
         authenticationClientService.getMemberEmailForKey(consumerId);
