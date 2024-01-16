@@ -389,10 +389,12 @@ public class NotificationService {
     ConsumerOrderListResponseDto consumerOrderListResponseDto =
         objectMapper.readValue(redisValue, ConsumerOrderListResponseDto.class);
 
+    String ordersId = consumerOrderListResponseDto.getOrder().getOrdersId();
+    log.info("[ordersId]: " + ordersId);
     return notificationMapper.toRedirectUrlDto(
         foundNotification.getRedirectLink()
             + "/"
-            + consumerOrderListResponseDto.getOrder().getOrdersId()
+            + ordersId
             + "?order="
             + URLEncoder.encode(redisValue));
   }
