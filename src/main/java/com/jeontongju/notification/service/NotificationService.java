@@ -382,9 +382,10 @@ public class NotificationService {
 
     String redisValue = stringStringValueOperations.get("CONSUMER_" + memberId);
 
-    if (redisValue == null) {
-      return notificationMapper.toRedirectUrlDto(foundNotification.getRedirectLink());
-    }
+    log.info("[redisValue]: " + redisValue);
+//    if (redisValue == null) {
+//      return notificationMapper.toRedirectUrlDto(foundNotification.getRedirectLink());
+//    }
 
     ConsumerOrderListResponseDto consumerOrderListResponseDto =
         objectMapper.readValue(redisValue, ConsumerOrderListResponseDto.class);
