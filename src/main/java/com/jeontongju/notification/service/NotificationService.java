@@ -393,7 +393,7 @@ public class NotificationService {
         foundNotification.getRedirectLink()
             + "/"
             + consumerOrderListResponseDto.getOrder().getOrdersId()
-            + "?"
+            + "?order="
             + URLEncoder.encode(redisValue));
   }
 
