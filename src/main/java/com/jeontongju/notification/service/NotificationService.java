@@ -46,7 +46,7 @@ public class NotificationService {
   private final NotificationProducer notificationProducer;
 
   // SSE 연결 지속 시간 설정
-  private static final Long DEFAULT_TIMEOUT = 60L * 5 * 1000;
+  private static final Long DEFAULT_TIMEOUT = 60L * 60 * 1000;
 
   public NotificationService(
       EmitterRepository emitterRepository,
