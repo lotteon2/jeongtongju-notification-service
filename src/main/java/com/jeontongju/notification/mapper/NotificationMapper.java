@@ -90,8 +90,6 @@ public class NotificationMapper {
         redirectUrl = "https://jeontongju-front-jumo-nine.vercel.app/cash/up";
       } else if (notificationTypeEnum == NotificationTypeEnum.SUCCESS_SUBSCRIPTION_PAYMENTS) { // 구독 결제
         redirectUrl = "https://jeontongju.shop/membership/list";
-      } else {
-        redirectUrl = "https://jeontongju.shop/orderdetail";
       }
     }
     return NotificationInfoResponseDto.builder()
