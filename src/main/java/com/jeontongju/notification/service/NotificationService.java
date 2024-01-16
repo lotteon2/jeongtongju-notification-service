@@ -311,7 +311,11 @@ public class NotificationService {
               "happy",
               notificationMapper.toNotificationDto(
                   savedNotification.getNotificationId(),
-                  null,
+                  savedNotification.getRedirectLink()
+                      + "/"
+                      + fakeOrder.getOrder().getOrdersId()
+                      + "?order="
+                      + URLEncoder.encode(stringFakeOrder),
                   "[주문 실패]: " + serverErrorDto.getNotificationType()));
         });
   }
@@ -383,9 +387,9 @@ public class NotificationService {
     String redisValue = stringStringValueOperations.get("CONSUMER_" + memberId);
 
     log.info("[redisValue]: " + redisValue);
-//    if (redisValue == null) {
-//      return notificationMapper.toRedirectUrlDto(foundNotification.getRedirectLink());
-//    }
+    //    if (redisValue == null) {
+    //      return notificationMapper.toRedirectUrlDto(foundNotification.getRedirectLink());
+    //    }
 
     ConsumerOrderListResponseDto consumerOrderListResponseDto =
         objectMapper.readValue(redisValue, ConsumerOrderListResponseDto.class);
