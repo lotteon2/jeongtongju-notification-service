@@ -394,8 +394,15 @@ public class NotificationService {
     String redisValue = stringStringValueOperations.get("CONSUMER_" + memberId);
 
     log.info("[redisValue]: " + redisValue);
-    if (redisValue == null) {
-      return notificationMapper.toRedirectUrlDto(foundNotification.getRedirectLink());
+    NotificationTypeEnum notificationTypeEnum = foundNotification.getNotificationTypeEnum();
+    if (notificationTypeEnum == NotificationTypeEnum.OUT_OF_STOCK
+        || notificationTypeEnum == NotificationTypeEnum.BALANCE_ACCOUNTS
+        || notificationTypeEnum == NotificationTypeEnum.SUCCESS_SUBSCRIPTION_PAYMENTS) {
+
+      if (redisValue == null) {
+
+        return notificationMapper.toRedirectUrlDto(foundNotification.getRedirectLink());
+      }
     }
 
     ConsumerOrderListResponseDto consumerOrderListResponseDto =
