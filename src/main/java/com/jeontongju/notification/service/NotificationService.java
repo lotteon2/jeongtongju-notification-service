@@ -21,8 +21,8 @@ import io.github.bitbox.bitbox.enums.NotificationTypeEnum;
 import io.github.bitbox.bitbox.enums.RecipientTypeEnum;
 import io.github.bitbox.bitbox.util.KafkaTopicNameInfo;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -305,25 +305,21 @@ public class NotificationService {
 
     emitters.forEach(
         (key, emitter) -> {
-          try {
-            sendNotification(
-                emitter,
-                eventId,
-                key,
-                "happy",
-                NotificationInfoResponseDto.builder()
-                    .notificationId(savedNotification.getNotificationId())
-                    .redirectUrl(
-                        savedNotification.getRedirectLink()
-                            + "/"
-                            + fakeOrder.getOrder().getOrdersId()
-                            + "?order="
-                            + URLEncoder.encode(stringFakeOrder, "UTF-8"))
-                    .data("[주문 실패]: " + serverErrorDto.getNotificationType())
-                    .build());
-          } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-          }
+          sendNotification(
+              emitter,
+              eventId,
+              key,
+              "happy",
+              NotificationInfoResponseDto.builder()
+                  .notificationId(savedNotification.getNotificationId())
+                  .redirectUrl(
+                      savedNotification.getRedirectLink()
+                          + "/"
+                          + fakeOrder.getOrder().getOrdersId()
+                          + "?order="
+                          + URLEncoder.encode(stringFakeOrder, StandardCharsets.UTF_8))
+                  .data("[주문 실패]: " + serverErrorDto.getNotificationType())
+                  .build());
         });
   }
 
