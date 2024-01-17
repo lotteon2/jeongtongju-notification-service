@@ -302,7 +302,13 @@ public class NotificationService {
 
     // event id 생성
     String eventId = makeTimeIncludedId(memberEmailForKey.getEmail(), consumerId);
-
+    String redirectUrl =
+        savedNotification.getRedirectLink()
+            + "/"
+            + fakeOrder.getOrder().getOrdersId()
+            + "?order="
+            + URLEncoder.encode(stringFakeOrder, StandardCharsets.UTF_8);
+    log.info("[redirectUrl]: " + redirectUrl);
     emitters.forEach(
         (key, emitter) -> {
           sendNotification(
@@ -312,12 +318,7 @@ public class NotificationService {
               "happy",
               NotificationInfoResponseDto.builder()
                   .notificationId(savedNotification.getNotificationId())
-                  .redirectUrl(
-                      savedNotification.getRedirectLink()
-                          + "/"
-                          + fakeOrder.getOrder().getOrdersId()
-                          + "?order="
-                          + URLEncoder.encode(stringFakeOrder, StandardCharsets.UTF_8))
+                  .redirectUrl(redirectUrl)
                   .data("[주문 실패]: " + serverErrorDto.getNotificationType())
                   .build());
         });
