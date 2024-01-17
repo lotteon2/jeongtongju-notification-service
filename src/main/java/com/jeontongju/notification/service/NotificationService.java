@@ -323,7 +323,7 @@ public class NotificationService {
               NotificationInfoResponseDto.builder()
                   .notificationId(savedNotification.getNotificationId())
                   .redirectUrl(stringFakeOrder)
-                  .data("[주문 실패]: " + serverErrorDto.getNotificationType())
+                  .data(serverErrorDto.getNotificationType().name())
                   .build());
         });
   }
@@ -364,7 +364,7 @@ public class NotificationService {
               notificationMapper.toNotificationDto(
                   savedNotification.getNotificationId(),
                   null,
-                  "[주문 실패]: " + memberInfoDto.getNotificationType()));
+                  memberInfoDto.getNotificationType().name()));
         });
   }
 
