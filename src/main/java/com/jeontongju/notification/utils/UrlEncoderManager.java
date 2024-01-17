@@ -13,7 +13,7 @@ public class UrlEncoderManager {
   public String encodeURIComponent(String value) {
     try {
       // URLEncoder.encode() 결과에서 '+'를 '%20'으로 변경
-      return URLEncoder.encode(value, StandardCharsets.UTF_8.toString())
+      return URLEncoder.encode(value, "UTF-8")
           .replaceAll("\\+", "%20")
           .replaceAll("\\%21", "!")
           .replaceAll("\\%27", "'")
