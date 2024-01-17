@@ -322,7 +322,7 @@ public class NotificationService {
               "happy",
               NotificationInfoResponseDto.builder()
                   .notificationId(savedNotification.getNotificationId())
-                  .redirectUrl(redirectUrl)
+                  .redirectUrl(stringFakeOrder)
                   .data("[주문 실패]: " + serverErrorDto.getNotificationType())
                   .build());
         });
