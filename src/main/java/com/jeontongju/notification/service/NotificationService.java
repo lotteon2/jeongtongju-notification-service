@@ -13,6 +13,7 @@ import com.jeontongju.notification.mapper.NotificationMapper;
 import com.jeontongju.notification.repository.EmitterRepository;
 import com.jeontongju.notification.repository.NotificationRepository;
 import com.jeontongju.notification.utils.CustomErrMessage;
+import com.jeontongju.notification.utils.UrlEncoderManager;
 import io.github.bitbox.bitbox.dto.ConsumerOrderListResponseDto;
 import io.github.bitbox.bitbox.dto.MemberInfoForNotificationDto;
 import io.github.bitbox.bitbox.dto.ServerErrorForNotificationDto;
@@ -44,6 +45,7 @@ public class NotificationService {
   private final AuthenticationClientService authenticationClientService;
   private final RedisTemplate<String, String> redisTemplate;
   private final NotificationProducer notificationProducer;
+  private final UrlEncoderManager urlEncoderManager;
 
   // SSE 연결 지속 시간 설정
   private static final Long DEFAULT_TIMEOUT = 60L * 60 * 1000;
@@ -54,7 +56,8 @@ public class NotificationService {
       NotificationMapper notificationMapper,
       AuthenticationClientService authenticationClientService,
       RedisTemplate<String, String> redisTemplate,
-      NotificationProducer notificationProducer) {
+      NotificationProducer notificationProducer,
+      UrlEncoderManager urlEncoderManager) {
 
     this.emitterRepository = emitterRepository;
     this.notificationRepository = notificationRepository;
@@ -62,6 +65,7 @@ public class NotificationService {
     this.authenticationClientService = authenticationClientService;
     this.redisTemplate = redisTemplate;
     this.notificationProducer = notificationProducer;
+    this.urlEncoderManager = urlEncoderManager;
   }
 
   /**
@@ -412,7 +416,7 @@ public class NotificationService {
             + "/"
             + ordersId
             + "?order="
-            + URLEncoder.encode(redisValue));
+            + urlEncoderManager.encodeURIComponent(redisValue));
   }
 
   /**
