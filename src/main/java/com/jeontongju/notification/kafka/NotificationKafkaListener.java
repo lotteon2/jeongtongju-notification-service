@@ -35,6 +35,7 @@ public class NotificationKafkaListener {
   public void sendServerErrorNotification(ServerErrorForNotificationDto serverErrorDto)
       throws InterruptedException {
 
+    Thread.sleep(5000);
     log.info("NotificationConsumer's sendServerErrorNotification executes..");
     try {
       notificationService.sendError(serverErrorDto);
