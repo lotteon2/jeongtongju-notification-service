@@ -7,6 +7,7 @@ import com.google.firebase.messaging.Notification;
 import com.jeontongju.notification.dto.FCMTokenDto;
 import com.jeontongju.notification.dto.request.FCMNotificationRequestDto;
 import com.jeontongju.notification.feign.ConsumerClientService;
+import com.jeontongju.notification.utils.CustomErrMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,9 @@ public class FCMNotificationService {
 
     FCMTokenDto fcmTokenDto = consumerClientService.getConsumerFCMToken(memberId);
 
+    if (fcmTokenDto.getFcmToken() == null) {
+      throw new RuntimeException(CustomErrMessage.NOT_FOUND_FCM_TOKEN);
+    }
     Notification notification =
         Notification.builder()
             .setTitle(fcmNotificationDto.getTitle())
