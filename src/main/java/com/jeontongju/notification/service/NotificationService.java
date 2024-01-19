@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jeontongju.notification.domain.Notification;
+import com.jeontongju.notification.dto.request.FCMNotificationRequestDto;
 import com.jeontongju.notification.dto.response.*;
 import com.jeontongju.notification.dto.temp.MemberEmailForKeyDto;
 import com.jeontongju.notification.exception.NotificationNotFoundException;
@@ -46,6 +47,7 @@ public class NotificationService {
   private final RedisTemplate<String, String> redisTemplate;
   private final NotificationProducer notificationProducer;
   private final UrlEncoderManager urlEncoderManager;
+  private final FCMNotificationService fcmNotificationService;
 
   // SSE 연결 지속 시간 설정
   private static final Long DEFAULT_TIMEOUT = 60L * 60 * 1000;
@@ -57,7 +59,8 @@ public class NotificationService {
       AuthenticationClientService authenticationClientService,
       RedisTemplate<String, String> redisTemplate,
       NotificationProducer notificationProducer,
-      UrlEncoderManager urlEncoderManager) {
+      UrlEncoderManager urlEncoderManager,
+      FCMNotificationService fcmNotificationService) {
 
     this.emitterRepository = emitterRepository;
     this.notificationRepository = notificationRepository;
@@ -66,6 +69,7 @@ public class NotificationService {
     this.redisTemplate = redisTemplate;
     this.notificationProducer = notificationProducer;
     this.urlEncoderManager = urlEncoderManager;
+    this.fcmNotificationService = fcmNotificationService;
   }
 
   /**
@@ -326,6 +330,13 @@ public class NotificationService {
                   .data(serverErrorDto.getNotificationType().name())
                   .build());
         });
+
+    fcmNotificationService.sendNotificationByToken(
+        consumerId,
+        FCMNotificationRequestDto.builder()
+            .title("[전통주점.] 주문실패 - Server Error!")
+            .body("죄송합니다. 서버오류로 인해 주문 실패했습니다.")
+            .build());
   }
 
   /**
