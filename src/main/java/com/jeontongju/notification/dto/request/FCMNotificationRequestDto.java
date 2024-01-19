@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FCMNotificationRequestDto {
 
-  private Long targetMemberId;
   private String title;
   private String body;
 }
