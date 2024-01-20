@@ -21,9 +21,9 @@ public class NotificationMapper {
 
     String redirectLink;
     if (notificationTypeEnum == NotificationTypeEnum.OUT_OF_STOCK) {
-      redirectLink = "https://jeontongju-front-jumo-nine.vercel.app/product/list";
+      redirectLink = "https://seller.jeontongju.shop/product/list";
     } else if (notificationTypeEnum == NotificationTypeEnum.BALANCE_ACCOUNTS) {
-      redirectLink = "https://jeontongju-front-jumo-nine.vercel.app/cash/up";
+      redirectLink = "https://seller.jeontongju.shop/cash/up";
     } else if (notificationTypeEnum == NotificationTypeEnum.SUCCESS_SUBSCRIPTION_PAYMENTS) {
       redirectLink = "https://jeontongju.shop/membership/list";
     } else {
