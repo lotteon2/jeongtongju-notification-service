@@ -331,12 +331,12 @@ public class NotificationService {
                   .build());
         });
 
-    fcmNotificationService.sendNotificationByToken(
-        consumerId,
-        FCMNotificationRequestDto.builder()
-            .title("[전통주점.] 주문실패 - Server Error!")
-            .body("죄송합니다. 서버오류로 인해 주문 실패했습니다.")
-            .build());
+//    fcmNotificationService.sendNotificationByToken(
+//        consumerId,
+//        FCMNotificationRequestDto.builder()
+//            .title("[전통주점.] 주문실패 - Server Error!")
+//            .body("죄송합니다. 서버오류로 인해 주문 실패했습니다.")
+//            .build());
   }
 
   /**
