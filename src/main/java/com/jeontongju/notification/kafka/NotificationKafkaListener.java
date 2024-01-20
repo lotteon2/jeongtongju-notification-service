@@ -20,7 +20,7 @@ public class NotificationKafkaListener {
   public void sendNotification(MemberInfoForNotificationDto notificationDto)
       throws InterruptedException {
 
-    log.info("NotificationConsumer's sendNotification executes..");
+    Thread.sleep(5000);
     try {
       notificationService.send(
           notificationDto.getRecipientId(),
@@ -36,7 +36,6 @@ public class NotificationKafkaListener {
       throws InterruptedException {
 
     Thread.sleep(5000);
-    log.info("NotificationConsumer's sendServerErrorNotification executes..");
     try {
       notificationService.sendError(serverErrorDto);
     } catch (Exception e) {
