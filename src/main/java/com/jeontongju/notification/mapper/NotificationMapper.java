@@ -85,9 +85,9 @@ public class NotificationMapper {
 
       NotificationTypeEnum notificationTypeEnum = savedNotification.getNotificationTypeEnum();
       if (notificationTypeEnum == NotificationTypeEnum.OUT_OF_STOCK) { // 재고 소진
-        redirectUrl = "https://jeontongju-front-jumo-nine.vercel.app/product/list";
+        redirectUrl = "https://seller.jeontongju.shop/product/list";
       } else if (notificationTypeEnum == NotificationTypeEnum.BALANCE_ACCOUNTS) { // 정산
-        redirectUrl = "https://jeontongju-front-jumo-nine.vercel.app/cash/up";
+        redirectUrl = "https://seller.jeontongju.shop/cash/up";
       } else if (notificationTypeEnum == NotificationTypeEnum.SUCCESS_SUBSCRIPTION_PAYMENTS) { // 구독 결제
         redirectUrl = "https://jeontongju.shop/membership/list";
       }
