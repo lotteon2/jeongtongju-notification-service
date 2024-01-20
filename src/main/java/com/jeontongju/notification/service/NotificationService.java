@@ -316,7 +316,7 @@ public class NotificationService {
             + fakeOrder.getOrder().getOrdersId()
             + "?order="
             + URLEncoder.encode(stringFakeOrder, StandardCharsets.UTF_8);
-    log.info("[redirectUrl]: " + redirectUrl);
+
     emitters.forEach(
         (key, emitter) -> {
           sendNotification(
@@ -405,7 +405,6 @@ public class NotificationService {
 
     String redisValue = stringStringValueOperations.get("CONSUMER_" + memberId);
 
-    log.info("[redisValue]: " + redisValue);
     NotificationTypeEnum notificationTypeEnum = foundNotification.getNotificationTypeEnum();
     if (notificationTypeEnum == NotificationTypeEnum.OUT_OF_STOCK
         || notificationTypeEnum == NotificationTypeEnum.BALANCE_ACCOUNTS
@@ -421,7 +420,7 @@ public class NotificationService {
         objectMapper.readValue(redisValue, ConsumerOrderListResponseDto.class);
 
     String ordersId = consumerOrderListResponseDto.getOrder().getOrdersId();
-    log.info("[ordersId]: " + ordersId);
+
     return notificationMapper.toRedirectUrlDto(
         foundNotification.getRedirectLink()
             + "/"
