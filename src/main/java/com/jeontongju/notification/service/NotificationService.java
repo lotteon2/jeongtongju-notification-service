@@ -4,11 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.jeontongju.notification.domain.Notification;
+import com.jeontongju.notification.dto.FCMTokenDto;
 import com.jeontongju.notification.dto.request.FCMNotificationRequestDto;
 import com.jeontongju.notification.dto.response.*;
 import com.jeontongju.notification.dto.temp.MemberEmailForKeyDto;
 import com.jeontongju.notification.exception.NotificationNotFoundException;
 import com.jeontongju.notification.feign.AuthenticationClientService;
+import com.jeontongju.notification.feign.ConsumerClientService;
 import com.jeontongju.notification.kafka.NotificationProducer;
 import com.jeontongju.notification.mapper.NotificationMapper;
 import com.jeontongju.notification.repository.EmitterRepository;
@@ -44,6 +46,7 @@ public class NotificationService {
   private final NotificationRepository notificationRepository;
   private final NotificationMapper notificationMapper;
   private final AuthenticationClientService authenticationClientService;
+  private final ConsumerClientService consumerClientService;
   private final RedisTemplate<String, String> redisTemplate;
   private final NotificationProducer notificationProducer;
   private final UrlEncoderManager urlEncoderManager;
@@ -57,6 +60,7 @@ public class NotificationService {
       NotificationRepository notificationRepository,
       NotificationMapper notificationMapper,
       AuthenticationClientService authenticationClientService,
+      ConsumerClientService consumerClientService,
       RedisTemplate<String, String> redisTemplate,
       NotificationProducer notificationProducer,
       UrlEncoderManager urlEncoderManager,
@@ -66,6 +70,7 @@ public class NotificationService {
     this.notificationRepository = notificationRepository;
     this.notificationMapper = notificationMapper;
     this.authenticationClientService = authenticationClientService;
+    this.consumerClientService = consumerClientService;
     this.redisTemplate = redisTemplate;
     this.notificationProducer = notificationProducer;
     this.urlEncoderManager = urlEncoderManager;
@@ -331,12 +336,20 @@ public class NotificationService {
                   .build());
         });
 
-//    fcmNotificationService.sendNotificationByToken(
-//        consumerId,
-//        FCMNotificationRequestDto.builder()
-//            .title("[전통주점.] 주문실패 - Server Error!")
-//            .body("죄송합니다. 서버오류로 인해 주문 실패했습니다.")
-//            .build());
+    log.info("[try getting fcm token]");
+    FCMTokenDto fcmTokenDto = consumerClientService.getConsumerFCMToken(consumerId);
+    String fcmToken = fcmTokenDto.getFcmToken();
+
+    if(fcmToken != null) {
+
+      log.info("[fcmToken]: " + fcmToken);
+      fcmNotificationService.sendNotificationByToken(
+              consumerId,
+              FCMNotificationRequestDto.builder()
+                      .title("[전통주점.] 주문실패 - Server Error!")
+                      .body("죄송합니다. 서버오류로 인해 주문 실패했습니다.")
+                      .build());
+    }
   }
 
   /**
