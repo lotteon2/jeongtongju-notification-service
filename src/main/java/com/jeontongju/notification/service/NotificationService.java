@@ -340,15 +340,15 @@ public class NotificationService {
     FCMTokenDto fcmTokenDto = consumerClientService.getConsumerFCMToken(consumerId);
     String fcmToken = fcmTokenDto.getFcmToken();
 
-    if(fcmToken != null) {
+    if (fcmToken != null) {
 
       log.info("[fcmToken]: " + fcmToken);
       fcmNotificationService.sendNotificationByToken(
-              consumerId,
-              FCMNotificationRequestDto.builder()
-                      .title("[전통주점.] 주문실패 - Server Error!")
-                      .body("죄송합니다. 서버오류로 인해 주문 실패했습니다.")
-                      .build());
+          consumerId,
+          FCMNotificationRequestDto.builder()
+              .title("[전통주점.] 주문실패 - Server Error!")
+              .body("죄송합니다. 서버오류로 인해 주문 실패했습니다.")
+              .build());
     }
   }
 
@@ -550,5 +550,12 @@ public class NotificationService {
       }
     }
     return emitters;
+  }
+
+  public void resetEmitters(Long memberId) {
+
+    String memberEmail = authenticationClientService.getConsumerEmail(memberId);
+    log.info("[memberEmail]: " + memberEmail);
+    emitterRepository.delete(memberEmail, memberId);
   }
 }

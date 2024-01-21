@@ -16,4 +16,6 @@ public interface EmitterRepository {
   Map<String, SseEmitter> findAllEmitterStartWithByEmail(String email);
 
   void saveEventCache(String key, Notification event);
+
+  void delete(String email, Long memberId);
 }

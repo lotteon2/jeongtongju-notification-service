@@ -15,4 +15,9 @@ public class AuthenticationClientService {
   public MemberEmailForKeyDto getMemberEmailForKey(Long memberId) {
     return authenticationServiceClient.getMemberEmailForKey(memberId).getData();
   }
+
+  public String getConsumerEmail(Long memberId) {
+
+    return authenticationServiceClient.getMemberEmailForKey(memberId).getData().getEmail();
+  }
 }

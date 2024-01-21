@@ -5,9 +5,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import com.jeontongju.notification.domain.Notification;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+@Slf4j
 @Repository
 public class EmitterRepositoryImpl implements EmitterRepository {
 
@@ -43,5 +45,15 @@ public class EmitterRepositoryImpl implements EmitterRepository {
   @Override
   public void saveEventCache(String key, Notification event) {
     eventCache.put(key, event);
+  }
+
+  @Override
+  public void delete(String email, Long memberId) {
+
+    emitters.entrySet().stream()
+        .filter(entry -> entry.getKey().startsWith(email + "_" + memberId))
+        .forEach(entry -> emitters.remove(entry.getKey()));
+
+    log.info("[Successful removed]");
   }
 }
