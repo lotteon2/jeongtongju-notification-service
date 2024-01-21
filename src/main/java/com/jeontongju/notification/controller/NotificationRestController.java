@@ -114,4 +114,16 @@ public class NotificationRestController {
                 .detail("주문 실패 로직 성공")
                 .build());
   }
+
+  @DeleteMapping("/reset")
+  public ResponseEntity<ResponseFormat<Void>> reset(@RequestHeader Long memberId) {
+
+    notificationService.resetEmitters(memberId);
+    return ResponseEntity.ok()
+        .body(
+            ResponseFormat.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message(HttpStatus.OK.name())
+                .build());
+  }
 }
