@@ -336,20 +336,20 @@ public class NotificationService {
                   .build());
         });
 
-    log.info("[try getting fcm token]");
-    FCMTokenDto fcmTokenDto = consumerClientService.getConsumerFCMToken(consumerId);
-    String fcmToken = fcmTokenDto.getFcmToken();
-
-    if (fcmToken != null) {
-
-      log.info("[fcmToken]: " + fcmToken);
-      fcmNotificationService.sendNotificationByToken(
-          consumerId,
-          FCMNotificationRequestDto.builder()
-              .title("[전통주점.] 주문실패 - Server Error!")
-              .body("죄송합니다. 서버오류로 인해 주문 실패했습니다.")
-              .build());
-    }
+//    log.info("[try getting fcm token]");
+//    FCMTokenDto fcmTokenDto = consumerClientService.getConsumerFCMToken(consumerId);
+//    String fcmToken = fcmTokenDto.getFcmToken();
+//
+//    if (fcmToken != null) {
+//
+//      log.info("[fcmToken]: " + fcmToken);
+//      fcmNotificationService.sendNotificationByToken(
+//          consumerId,
+//          FCMNotificationRequestDto.builder()
+//              .title("[전통주점.] 주문실패 - Server Error!")
+//              .body("죄송합니다. 서버오류로 인해 주문 실패했습니다.")
+//              .build());
+//    }
   }
 
   /**
